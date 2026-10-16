@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DA-1000 · 双通道功放电平表</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;display:grid;place-items:center;
+    background:radial-gradient(circle at 50% -10%,#1b1f24 0%,#0a0b0d 60%,#050607 100%);
+    font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    color:#c9ced6;-webkit-font-smoothing:antialiased;
+    padding:20px 12px;
+  }
+
+  /* ============ 机箱 ============ */
+  .amp{
+    width:min(880px,97vw);
+    border-radius:16px;
+    border:1px solid #08090b;
+    background:linear-gradient(180deg,#3a4048 0%,#262a2f 6%,#1c1f23 55%,#15181b 100%);
+    box-shadow:
+      0 42px 90px rgba(0,0,0,.85),
+      0 2px 0 rgba(255,255,255,.06) inset,
+      0 -2px 0 rgba(0,0,0,.75) inset;
+    position:relative;
+    overflow:hidden;
+  }
+  .amp::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+    background:repeating-linear-gradient(90deg,
+      rgba(255,255,255,.016) 0 1px, transparent 1px 3px);
+  }
+  .amp > *{position:relative;z-index:1}
+
+  /* ============ 顶栏 ============ */
+  .amp-head{
+    display:flex;align-items:center;gap:16px;
+    padding:12px 22px;
+    border-bottom:1px solid rgba(0,0,0,.6);
+    background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0));
+  }
+  .pwr{
+    display:flex;align-items:center;gap:7px;
+    font-size:9px;letter-spacing:.24em;color:#6d7580;font-weight:600;
+  }
+  .pwr i{
+    width:7px;height:7px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#b6ffcf,#25e06a 45%,#0a7a34);
+    box-shadow:0 0 7px rgba(37,224,106,.9),0 0 18px rgba(37,224,106,.45);
+    animation:breathe 3.4s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{opacity:1}50%{opacity:.55}}
+
+  .title{display:flex;align-items:baseline;gap:11px;min-width:0}
+  .model{font-size:14px;font-weight:700;letter-spacing:.26em;color:#d8dee6;text-shadow:0 1px 0 #000}
+  .desc{font-size:9px;letter-spacing:.2em;color:#5f6771;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brand{margin-left:auto;font-size:9px;letter-spacing:.3em;color:#4e555e;font-weight:600}
+
+  /* ============ 表头面板 ============ */
+  .meter-panel{
+    margin:14px 18px 0;
+    padding:14px 18px 12px;
+    border-radius:11px;
+    background:linear-gradient(180deg,#0b0d0f 0%,#101316 100%);
+    box-shadow:
+      inset 0 4px 16px rgba(0,0,0,.95),
+      inset 0 -1px 0 rgba(255,255,255,.045),
+      0 1px 0 rgba(255,255,255,.05);
+  }
+  .grid3{display:grid;grid-template-columns:100px 1fr 70px;gap:14px;align-items:center}
+  .scale-row{padding:0 0 9px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:10px}
+  .scale-tag{font-size:8.5px;letter-spacing:.24em;color:#4d545d;font-weight:600}
+  .scale-tag.right{text-align:right}
+  .scale-marks{display:grid;grid-template-columns:repeat(8,1fr);gap:7px}
+  .scale-marks span{
+    text-align:center;font-size:8.5px;letter-spacing:.06em;
+    color:#4e565f;font-weight:600;font-variant-numeric:tabular-nums;
+  }
+  .scale-marks span:last-child{color:#7a3f3c}
+
+  .ch-row{padding:3px 0}
+  .ch-label{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:600;letter-spacing:.14em;color:#7f878f}
+  .ch-label .side{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:15px;height:15px;border-radius:3px;
+    background:linear-gradient(180deg,#2c3238,#1c2024);
+    border:1px solid #0a0c0e;
+    font-size:9px;letter-spacing:0;color:#98a1ab;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.09);flex:none;
+  }
+  .ch-label.sub .band{color:#6f9dd0}
+  .sep{height:1px;margin:8px 0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.075),transparent)}
+
+  .leds{display:grid;grid-template-columns:repeat(8,1fr);gap:7px}
+  .led{
+    position:relative;height:22px;border-radius:4px;overflow:hidden;
+    box-shadow:
+      inset 0 2px 5px rgba(0,0,0,.9),
+      inset 0 -1px 0 rgba(255,255,255,.05),
+      0 1px 0 rgba(255,255,255,.03);
+    transition:background 260ms ease-out, box-shadow 260ms ease-out;
+  }
+  .led::after{
+    content:"";position:absolute;left:0;right:0;top:0;height:52%;
+    border-radius:4px 4px 0 0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(255,255,255,.085),rgba(255,255,255,0));
+  }
+  .led[data-c="blue"]  {background:linear-gradient(180deg,#141d2b,#0d1319);--c:#3d9bff;--cd:#0a4a8c;--g:rgba(61,155,255,.55)}
+  .led[data-c="green"] {background:linear-gradient(180deg,#13251b,#0d1712);--c:#2ee06e;--cd:#0a6730;--g:rgba(46,224,110,.48)}
+  .led[data-c="yellow"]{background:linear-gradient(180deg,#2a2414,#18150c);--c:#f2d13a;--cd:#8a6f08;--g:rgba(242,209,58,.48)}
+  .led[data-c="amber"] {background:linear-gradient(180deg,#2a1f11,#18120a);--c:#ff9d2e;--cd:#8a4c04;--g:rgba(255,157,46,.55)}
+  .led[data-c="orange"]{background:linear-gradient(180deg,#2b1a11,#180f0a);--c:#ff6a2b;--cd:#8c2c05;--g:rgba(255,106,43,.58)}
+  .led[data-c="red"]   {background:linear-gradient(180deg,#2b1517,#180d0f);--c:#ff3b30;--cd:#8f0d06;--g:rgba(255,59,48,.65)}
+
+  .led.on{
+    background:radial-gradient(ellipse 150% 130% at 50% 34%,
+      rgba(255,255,255,.94) 0%, var(--c) 40%, var(--cd) 100%);
+    box-shadow:
+      0 0 6px var(--c), 0 0 15px var(--g), 0 0 30px var(--g),
+      inset 0 1px 1px rgba(255,255,255,.6),
+      inset 0 -1px 3px rgba(0,0,0,.3);
+    transition:background 30ms linear, box-shadow 30ms linear;
+  }
+
+  .ch-db{
+    text-align:right;font-size:11.5px;font-weight:500;
+    font-variant-numeric:tabular-nums;color:#666e78;
+    transition:color .14s;letter-spacing:.02em;
+  }
+  .ch-db.hot{color:#ffd05a;text-shadow:0 0 10px rgba(255,208,90,.35)}
+  .ch-db.clip{color:#ff5b52;text-shadow:0 0 12px rgba(255,59,48,.55)}
+
+  /* ============ 控制面板（旋钮 + 灵敏度） ============ */
+  .control-panel{
+    margin:12px 18px 0;
+    padding:14px 18px 10px;
+    border-radius:11px;
+    background:linear-gradient(180deg,#14171a 0%,#0f1214 100%);
+    border:1px solid rgba(0,0,0,.5);
+    box-shadow:inset 0 2px 10px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.04);
+  }
+
+  .knobs-row{
+    display:flex;align-items:flex-start;justify-content:center;
+    gap:6px;flex-wrap:wrap;
+  }
+
+  .knob-item{
+    display:flex;flex-direction:column;align-items:center;
+    width:88px;user-select:none;
+  }
+  .knob-item + .knob-item{margin-left:2px}
+
+  .knob-svg{
+    width:76px;height:76px;
+    cursor:grab;
+    touch-action:none;
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,.6));
+    transition:filter .15s;
+  }
+  .knob-svg:hover{filter:drop-shadow(0 4px 8px rgba(0,0,0,.6)) brightness(1.08)}
+  .knob-svg.dragging{cursor:grabbing}
+
+  .knob-tick{stroke:#3c434b;stroke-width:1.4;stroke-linecap:round}
+  .knob-tick.major{stroke:#5b636d;stroke-width:2}
+
+  .knob-body{
+    fill:url(#knobGrad);
+    stroke:#0a0b0c;stroke-width:.8;
+  }
+  .knob-rotor{transition:none}
+
+  .knob-indicator{
+    stroke:#e8ecf1;stroke-width:2.8;stroke-linecap:round;
+    filter:drop-shadow(0 0 3px rgba(255,255,255,.55));
+  }
+  .knob-cap{
+    fill:url(#capGrad);
+    stroke:rgba(0,0,0,.65);stroke-width:.6;
+  }
+
+  .knob-label{
+    margin-top:5px;text-align:center;line-height:1.15;
+  }
+  .knob-name{
+    display:block;font-size:9px;font-weight:700;letter-spacing:.14em;color:#8b939d;
+  }
+  .knob-sub{
+    display:block;font-size:7.5px;letter-spacing:.1em;color:#5b636d;margin-top:1px;
+  }
+  .knob-item.sens .knob-name{color:#7fb0d6}
+  .knob-value{
+    margin-top:3px;font-size:9px;font-variant-numeric:tabular-nums;
+    color:#616a75;letter-spacing:.06em;
+  }
+
+  .knob-divider{
+    width:1px;align-self:stretch;margin:8px 10px;
+    background:linear-gradient(180deg,transparent,rgba(255,255,255,.09),transparent);
+  }
+
+  /* ============ 功率面板 ============ */
+  .power-panel{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    margin:12px 18px 16px;
+  }
+  .power-card{
+    background:linear-gradient(180deg,#0b0d0f,#0e1113);
+    border:1px solid #000;
+    border-radius:8px;
+    padding:9px 11px 8px;
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.035);
+    position:relative;
+    overflow:hidden;
+  }
+  .pc-name{
+    font-size:8.5px;font-weight:700;letter-spacing:.16em;
+    color:#767e88;margin-bottom:5px;
+  }
+  .pc-name.sub{color:#6f9dd0}
+
+  .pc-value{
+    font-size:22px;font-weight:300;line-height:1;
+    color:#8fe8b0;
+    font-variant-numeric:tabular-nums;
+    text-shadow:0 0 14px rgba(46,224,110,.3);
+    transition:color .15s, text-shadow .15s;
+    letter-spacing:-.02em;
+  }
+  .pc-value small{
+    font-size:10px;font-weight:500;color:#5c6670;
+    margin-left:2px;letter-spacing:.06em;
+    text-shadow:none;
+  }
+  .pc-value.warn{color:#ffd05a;text-shadow:0 0 14px rgba(255,208,90,.35)}
+  .pc-value.hot{color:#ff7a4d;text-shadow:0 0 14px rgba(255,106,43,.45)}
+  .pc-value.clip{color:#ff5b52;text-shadow:0 0 16px rgba(255,59,48,.55)}
+
+  .pc-bar{
+    height:4px;border-radius:2px;margin-top:7px;
+    background:#14171a;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.9);
+    overflow:hidden;
+  }
+  .pc-fill{
+    height:100%;width:0%;border-radius:2px;
+    background:linear-gradient(90deg,#2ee06e,#8fe8b0);
+    box-shadow:0 0 6px rgba(46,224,110,.5);
+    transition:width 60ms linear, background 160ms, box-shadow 160ms;
+  }
+  .pc-fill.warn{background:linear-gradient(90deg,#f2d13a,#ffd05a);box-shadow:0 0 6px rgba(242,209,58,.55)}
+  .pc-fill.hot{background:linear-gradient(90deg,#ff9d2e,#ff7a4d);box-shadow:0 0 6px rgba(255,157,46,.6)}
+  .pc-fill.clip{background:linear-gradient(90deg,#ff3b30,#ff5b52);box-shadow:0 0 8px rgba(255,59,48,.7)}
+
+  .pc-max{
+    margin-top:5px;font-size:7.5px;letter-spacing:.14em;
+    color:#4d545d;font-weight:600;
+  }
+  .pc-max b{color:#6b7480;font-weight:700}
+
+  /* ============ 底栏 ============ */
+  .amp-foot{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 22px 16px;
+    border-top:1px solid rgba(0,0,0,.55);
+    background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(0,0,0,.15));
+    flex-wrap:wrap;
+  }
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    height:36px;padding:0 20px;border-radius:7px;
+    border:1px solid #000;
+    background:linear-gradient(180deg,#3b4149,#23272c);
+    color:#d3d9e0;font-size:11px;font-weight:600;letter-spacing:.16em;
+    text-transform:uppercase;cursor:pointer;user-select:none;
+    box-shadow:0 2px 0 #000,inset 0 1px 0 rgba(255,255,255,.13);
+    transition:background .13s,transform .06s;
+  }
+  .btn:hover{background:linear-gradient(180deg,#474e57,#2a2f35)}
+  .btn:active{transform:translateY(1px);box-shadow:0 1px 0 #000,inset 0 1px 0 rgba(255,255,255,.1)}
+  .btn:disabled{opacity:.32;cursor:default;transform:none}
+  .btn.primary{
+    background:linear-gradient(180deg,#2f6b45,#1c4429);
+    color:#c6f5d8;
+    box-shadow:0 2px 0 #000,inset 0 1px 0 rgba(255,255,255,.18);
+  }
+  .btn.primary:hover{background:linear-gradient(180deg,#37804f,#204e2f)}
+
+  .time{font-size:11.5px;color:#69717b;font-variant-numeric:tabular-nums;letter-spacing:.03em}
+  .fname{
+    margin-left:auto;font-size:10px;color:#5b636d;
+    max-width:36%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    letter-spacing:.04em;
+  }
+
+  /* ============ 响应式 ============ */
+  @media (max-width:700px){
+    .grid3{grid-template-columns:64px 1fr 50px;gap:8px}
+    .leds,.scale-marks{gap:4px}
+    .led{height:16px;border-radius:3px}
+    .ch-label{font-size:9px;gap:5px}
+    .ch-label .side{width:13px;height:13px;font-size:8px}
+    .scale-marks span{font-size:7.5px}
+    .meter-panel{margin:10px 10px 0;padding:10px 12px 8px}
+    .control-panel{margin:10px 10px 0;padding:10px 8px 6px}
+    .knob-item{width:66px}
+    .knob-svg{width:58px;height:58px}
+    .knob-name{font-size:8px}
+    .knob-value{font-size:8px}
+    .power-panel{grid-template-columns:repeat(2,1fr);margin:10px 10px 12px;gap:8px}
+    .pc-value{font-size:19px}
+    .fname{display:none}
+    .brand,.desc{display:none}
+  }
+  @media (max-width:420px){
+    .knob-item{width:58px}
+    .knob-svg{width:50px;height:50px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ SVG 渐变定义 ============ -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <radialGradient id="knobGrad" cx="38%" cy="30%" r="78%">
+      <stop offset="0%"  stop-color="#5a626b"/>
+      <stop offset="35%" stop-color="#3d444c"/>
+      <stop offset="75%" stop-color="#282d33"/>
+      <stop offset="100%" stop-color="#181c20"/>
+    </radialGradient>
+    <radialGradient id="capGrad" cx="38%" cy="32%" r="80%">
+      <stop offset="0%"  stop-color="#454c55"/>
+      <stop offset="60%" stop-color="#2a2f35"/>
+      <stop offset="100%" stop-color="#15181b"/>
+    </radialGradient>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#2a2f35"/>
+      <stop offset="100%" stop-color="#14171a"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<div class="amp">
+
+  <!-- ============ 顶栏 ============ -->
+  <div class="amp-head">
+    <div class="pwr"><i></i>PWR</div>
+    <div class="title">
+      <span class="model">DA-1000</span>
+      <span class="desc">Stereo Power Amplifier · Dual Channel Metering</span>
+    </div>
+    <div class="brand">AUDIO LAB</div>
+  </div>
+
+  <!-- ============ 表头 ============ -->
+  <div class="meter-panel">
+    <div class="scale-row grid3">
+      <div class="scale-tag">LEVEL</div>
+      <div class="scale-marks" id="scaleMarks"></div>
+      <div class="scale-tag right">dB</div>
+    </div>
+    <div id="rows"></div>
+  </div>
+
+  <!-- ============ 旋钮面板 ============ -->
+  <div class="control-panel">
+    <div class="knobs-row" id="knobsRow"></div>
+  </div>
+
+  <!-- ============ 功率面板 ============ -->
+  <div class="power-panel" id="powerPanel"></div>
+
+  <!-- ============ 底栏 ============ -->
+  <div class="amp-foot">
+    <label class="btn">
+      <input type="file" id="fileInput" accept="audio/*" hidden>
+      加载音频
+    </label>
+    <button class="btn primary" id="playBtn" disabled>播放</button>
+    <span class="time" id="timeEl">--:-- / --:--</span>
+    <span class="fname" id="fnameEl"></span>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   1. 配置
+   ========================================================= */
+const SUB_CROSSOVER = 120;                 // 超低通道分频点 (Hz)
+const BASE_REF = { full: -6, sub: -12 };   // 基础灵敏度参考 (dBFS)
+const RELEASE_MS = 220;                    // 表头回落时间常数
+const CLIP_HOLD = 1200;                    // CLIP 保持时长
+const CLIP_LEVEL = 0.985;                  // 削顶阈值（线性）
+const POWER_SPECS = {
+  full: { maxW: 400,  label: '400W',  driver: '1×15"' },
+  sub:  { maxW: 1600, label: '1600W', driver: '2×18"' },
+};
+
+/* 表头刻度 */
+const SCALE = [
+  { label:'SIG',  db:-40, color:'blue'   },
+  { label:'-12',  db:-12, color:'green'  },
+  { label:'-6',   db:-6,  color:'green'  },
+  { label:'-3',   db:-3,  color:'green'  },
+  { label:'0',    db: 0,  color:'yellow' },
+  { label:'+3',   db: 3,  color:'amber'  },
+  { label:'+6',   db: 6,  color:'orange' },
+  { label:'CLIP', db: 0,  color:'red', clip:true },
+];
+
+/* 四个通道 */
+const ROW_DEFS = [
+  { band:'full', ch:0, name:'FULL', side:'L', sub:false },
+  { band:'full', ch:1, name:'FULL', side:'R', sub:false },
+  { band:'sub',  ch:0, name:'SUB',  side:'L', sub:true  },
+  { band:'sub',  ch:1, name:'SUB',  side:'R', sub:true  },
+];
+
+/* 状态 */
+const gainState = { full: [0.5, 0.5], sub: [0.5, 0.5] };
+let sensValue = 0.5;                        // 0..1
+let sensOffset = 0;                         // 由 sensValue 推导
+
+/* =========================================================
+   2. 构建刻度 + 表头行
+   ========================================================= */
+const scaleMarksEl = document.getElementById('scaleMarks');
+SCALE.forEach(s => {
+  const sp = document.createElement('span');
+  sp.textContent = s.label;
+  scaleMarksEl.append(sp);
+});
+
+const rowsEl = document.getElementById('rows');
+const rows = [];
+
+ROW_DEFS.forEach((def, i) => {
+  const rowEl = document.createElement('div');
+  rowEl.className = 'ch-row grid3';
+
+  const label = document.createElement('div');
+  label.className = 'ch-label' + (def.sub ? ' sub' : '');
+  label.innerHTML =
+    `<span class="band">${def.name}</span><span class="side">${def.side}</span>`;
+
+  const ledsEl = document.createElement('div');
+  ledsEl.className = 'leds';
+  const leds = SCALE.map(s => {
+    const led = document.createElement('div');
+    led.className = 'led';
+    led.dataset.c = s.color;
+    ledsEl.append(led);
+    return { el: led, db: s.db, clip: !!s.clip, on: false };
+  });
+
+  const dbEl = document.createElement('div');
+  dbEl.className = 'ch-db';
+  dbEl.textContent = '−∞';
+
+  rowEl.append(label, ledsEl, dbEl);
+  rowsEl.append(rowEl);
+
+  if (i === 1) {
+    const sep = document.createElement('div');
+    sep.className = 'sep';
+    rowsEl.append(sep);
+  }
+
+  rows.push({
+    def, leds, dbEl,
+    db: -100,
+    clipUntil: 0,
+    power: 0,
+    powerSmooth: 0,
+  });
+});
+
+/* =========================================================
+   3. 旋钮组件
+   ========================================================= */
+function createKnob(container, opts) {
+  const { label, sublabel, initial = 0.5, accent = false, onChange } = opts;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'knob-item' + (accent ? ' sens' : '');
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.classList.add('knob-svg');
+
+  /* 外圈底 */
+  const outer = document.createElementNS(svgNS, 'circle');
+  outer.setAttribute('cx', 50); outer.setAttribute('cy', 50);
+  outer.setAttribute('r', 44);
+  outer.setAttribute('fill', 'url(#ringGrad)');
+  outer.setAttribute('stroke', '#0a0b0c');
+  outer.setAttribute('stroke-width', '1');
+  svg.append(outer);
+
+  /* 刻度 */
+  for (let i = 0; i < 11; i++) {
+    const t = i / 10;
+    const angle = -135 + 270 * t;
+    const rad = (90 - angle) * Math.PI / 180;
+    const r1 = 36, r2 = 41.5;
+    const x1 = 50 + r1 * Math.cos(rad);
+    const y1 = 50 - r1 * Math.sin(rad);
+    const x2 = 50 + r2 * Math.cos(rad);
+    const y2 = 50 - r2 * Math.sin(rad);
+    const line = document.createElementNS(svgNS, 'line');
+    line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+    line.setAttribute('class', 'knob-tick' +
+      (i === 0 || i === 5 || i === 10 ? ' major' : ''));
+    svg.append(line);
+  }
+
+  /* 转子 */
+  const rotor = document.createElementNS(svgNS, 'g');
+  const body = document.createElementNS(svgNS, 'circle');
+  body.setAttribute('cx', 50); body.setAttribute('cy', 50);
+  body.setAttribute('r', 29);
+  body.setAttribute('class', 'knob-body');
+  rotor.append(body);
+
+  const ind = document.createElementNS(svgNS, 'line');
+  ind.setAttribute('x1', 50); ind.setAttribute('y1', 24);
+  ind.setAttribute('x2', 50); ind.setAttribute('y2', 41);
+  ind.setAttribute('class', 'knob-indicator');
+  rotor.append(ind);
+  svg.append(rotor);
+
+  /* 中心盖 */
+  const cap = document.createElementNS(svgNS, 'circle');
+  cap.setAttribute('cx', 50); cap.setAttribute('cy', 50);
+  cap.setAttribute('r', 9);
+  cap.setAttribute('class', 'knob-cap');
+  svg.append(cap);
+
+  wrap.append(svg);
+
+  /* 标签 */
+  const labelEl = document.createElement('div');
+  labelEl.className = 'knob-label';
+  labelEl.innerHTML = `<span class="knob-name">${label}</span>` +
+    (sublabel ? `<span class="knob-sub">${sublabel}</span>` : '');
+  wrap.append(labelEl);
+
+  const valueEl = document.createElement('div');
+  valueEl.className = 'knob-value';
+  wrap.append(valueEl);
+
+  container.append(wrap);
+
+  /* 状态 */
+  let value = initial;
+
+  function render() {
+    const angle = -135 + 270 * value;
+    rotor.setAttribute('transform', `rotate(${angle}, 50, 50)`);
+    valueEl.textContent = Math.round(value * 100) + '%';
+  }
+  render();
+
+  /* 拖动交互 */
+  let dragging = false;
+  let lastAngle = 0;
+
+  function getAngle(e) {
+    const r = svg.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    return Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI;
+  }
+
+  svg.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    svg.setPointerCapture(e.pointerId);
+    dragging = true;
+    lastAngle = getAngle(e);
+    svg.classList.add('dragging');
+  });
+
+  svg.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const a = getAngle(e);
+    let d = a - lastAngle;
+    if (d > 180) d -= 360;
+    if (d < -180) d += 360;
+    lastAngle = a;
+    value = Math.max(0, Math.min(1, value + d / 270));
+    render();
+    onChange(value);
+  });
+
+  function endDrag(e) {
+    if (!dragging) return;
+    dragging = false;
+    svg.classList.remove('dragging');
+    try { svg.releasePointerCapture(e.pointerId); } catch (_) {}
+  }
+  svg.addEventListener('pointerup', endDrag);
+  svg.addEventListener('pointercancel', endDrag);
+
+  /* 滚轮微调 */
+  svg.addEventListener('wheel', e => {
+    e.preventDefault();
+    const d = e.deltaY > 0 ? -1 : 1;
+    value = Math.max(0, Math.min(1, value + d * 0.025));
+    render();
+    onChange(value);
+  }, { passive: false });
+
+  /* 双击复位 */
+  svg.addEventListener('dblclick', e => {
+    e.preventDefault();
+    value = 0.5;
+    render();
+    onChange(value);
+  });
+
+  return { getValue: () => value };
+}
+
+/* 生成旋钮 */
+const knobsRow = document.getElementById('knobsRow');
+
+ROW_DEFS.forEach(def => {
+  const isFull = def.band === 'full';
+  createKnob(knobsRow, {
+    label: (isFull ? '全频' : '超低') + ' ' + def.side,
+    sublabel: def.band.toUpperCase() + ' ' + def.side,
+    initial: gainState[def.band][def.ch],
+    onChange: v => { gainState[def.band][def.ch] = v; },
+  });
+});
+
+/* 分隔条 */
+const divider = document.createElement('div');
+divider.className = 'knob-divider';
+knobsRow.append(divider);
+
+/* 灵敏度旋钮 */
+createKnob(knobsRow, {
+  label: '灵敏度',
+  sublabel: 'METER SENS',
+  initial: 0.5,
+  accent: true,
+  onChange: v => {
+    sensValue = v;
+    sensOffset = 12 - 24 * v;   // +12dB(最不灵敏) → -12dB(最灵敏)
+  },
+});
+
+/* =========================================================
+   4. 功率面板
+   ========================================================= */
+const powerPanel = document.getElementById('powerPanel');
+const powerCards = [];
+
+ROW_DEFS.forEach(def => {
+  const card = document.createElement('div');
+  card.className = 'power-card';
+
+  const nameEl = document.createElement('div');
+  nameEl.className = 'pc-name' + (def.sub ? ' sub' : '');
+  nameEl.textContent = (def.sub ? '超低' : '全频') + ' ' + def.side;
+
+  const valueEl = document.createElement('div');
+  valueEl.className = 'pc-value';
+  valueEl.innerHTML = '0.0<small>W</small>';
+
+  const barEl = document.createElement('div');
+  barEl.className = 'pc-bar';
+  const fillEl = document.createElement('div');
+  fillEl.className = 'pc-fill';
+  barEl.append(fillEl);
+
+  const maxEl = document.createElement('div');
+  maxEl.className = 'pc-max';
+  maxEl.innerHTML = `<b>${POWER_SPECS[def.band].label}</b> MAX · ${POWER_SPECS[def.band].driver}`;
+
+  card.append(nameEl, valueEl, barEl, maxEl);
+  powerPanel.append(card);
+
+  powerCards.push({ def, valueEl, fillEl });
+});
+
+/* =========================================================
+   5. 音频图
+   ========================================================= */
+const audio = new Audio();
+audio.preload = 'auto';
+
+let ctx = null;
+let analysers = null;
+let buffers = null;
+
+function ensureAudio() {
+  if (!ctx) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = ctx.createMediaElementSource(audio);
+    const splitter = ctx.createChannelSplitter(2);
+
+    src.connect(ctx.destination);
+    src.connect(splitter);
+
+    analysers = [];
+    buffers = [];
+
+    for (let i = 0; i < 2; i++) {
+      /* 全频支路 */
+      const fullA = ctx.createAnalyser();
+      fullA.fftSize = 2048;
+      fullA.smoothingTimeConstant = 0;
+      splitter.connect(fullA, i);
+
+      /* 超低支路：两级低通 → 24dB/oct */
+      const lp1 = ctx.createBiquadFilter();
+      lp1.type = 'lowpass';
+      lp1.frequency.value = SUB_CROSSOVER;
+      lp1.Q.value = 0.707;
+
+      const lp2 = ctx.createBiquadFilter();
+      lp2.type = 'lowpass';
+      lp2.frequency.value = SUB_CROSSOVER;
+      lp2.Q.value = 0.707;
+
+      const subA = ctx.createAnalyser();
+      subA.fftSize = 2048;
+      subA.smoothingTimeConstant = 0;
+
+      splitter.connect(lp1, i);
+      lp1.connect(lp2);
+      lp2.connect(subA);
+
+      analysers.push({ full: fullA, sub: subA });
+      buffers.push({
+        full: new Float32Array(fullA.fftSize),
+        sub:  new Float32Array(subA.fftSize),
+      });
+    }
+  }
+  if (ctx.state === 'suspended') ctx.resume();
+}
+
+/* =========================================================
+   6. 交互
+   ========================================================= */
+const fileInput = document.getElementById('fileInput');
+const playBtn = document.getElementById('playBtn');
+const timeEl = document.getElementById('timeEl');
+const fnameEl = document.getElementById('fnameEl');
+
+let objectUrl = null;
+
+fileInput.addEventListener('change', () => {
+  const f = fileInput.files[0];
+  if (!f) return;
+  ensureAudio();
+
+  if (objectUrl) URL.revokeObjectURL(objectUrl);
+  objectUrl = URL.createObjectURL(f);
+
+  audio.src = objectUrl;
+  fnameEl.textContent = f.name;
+  playBtn.disabled = false;
+  audio.play().catch(() => {});
+});
+
+playBtn.addEventListener('click', () => {
+  ensureAudio();
+  if (audio.paused) audio.play().catch(() => {});
+  else audio.pause();
+});
+
+audio.addEventListener('play',  () => playBtn.textContent = '暂停');
+audio.addEventListener('pause', () => playBtn.textContent = '播放');
+audio.addEventListener('ended', () => playBtn.textContent = '播放');
+
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space' && !playBtn.disabled && e.target === document.body) {
+    e.preventDefault();
+    playBtn.click();
+  }
+});
+
+/* =========================================================
+   7. 主循环
+   ========================================================= */
+let lastT = performance.now();
+
+function fmtTime(t) {
+  if (!isFinite(t) || t < 0) return '--:--';
+  const m = Math.floor(t / 60);
+  const s = Math.floor(t % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function readPeak(analyser, buf) {
+  analyser.getFloatTimeDomainData(buf);
+  let p = 0;
+  for (let i = 0; i < buf.length; i++) {
+    const v = buf[i] < 0 ? -buf[i] : buf[i];
+    if (v > p) p = v;
+  }
+  return p;
+}
+
+function frame(now) {
+  requestAnimationFrame(frame);
+
+  const dt = Math.min(now - lastT, 100);
+  lastT = now;
+
+  const running = ctx && ctx.state === 'running';
+
+  for (const row of rows) {
+    const { band, ch } = row.def;
+
+    /* ---------- 采样（原始信号） ---------- */
+    let peak = 0;
+    if (running) {
+      peak = readPeak(analysers[ch][band], buffers[ch][band]);
+    }
+
+    /* ---------- 增益（0..1 → 0..2 线性，0.5 = 单位增益） ---------- */
+    const gain = gainState[band][ch] * 2;
+    const amplified = peak * gain;
+
+    /* ---------- dBFS（0 dBFS = 数字满刻度） ---------- */
+    const dbfs = 20 * Math.log10(amplified + 1e-12);
+
+    /* ---------- 表头读数（含灵敏度补偿） ---------- */
+    const ref = BASE_REF[band] + sensOffset;
+    const meterDb = dbfs - ref;
+
+    /* ---------- 弹道 ---------- */
+    if (meterDb >= row.db) {
+      row.db = meterDb;                                    // attack
+    } else {
+      const k = 1 - Math.exp(-dt / RELEASE_MS);            // release
+      row.db += (meterDb - row.db) * k;
+    }
+    if (row.db < -70) row.db = -70;
+
+    /* ---------- 削顶 ---------- */
+    if (amplified >= CLIP_LEVEL) row.clipUntil = now + CLIP_HOLD;
+    const clipOn = now < row.clipUntil;
+
+    /* ---------- 驱动 LED ---------- */
+    for (const led of row.leds) {
+      const on = led.clip ? clipOn : (row.db >= led.db);
+      if (on !== led.on) {
+        led.on = on;
+        led.el.classList.toggle('on', on);
+      }
+    }
+
+    /* ---------- dB 读数 ---------- */
+    let txt;
+    if (row.db <= -59.95) txt = '−∞';
+    else txt = (row.db >= 0 ? '+' : '−') + Math.abs(row.db).toFixed(1);
+    if (row.dbEl.textContent !== txt) row.dbEl.textContent = txt;
+    row.dbEl.classList.toggle('hot',  row.db >= 0 && !clipOn);
+    row.dbEl.classList.toggle('clip', clipOn);
+
+    /* ---------- 功率（0 dBFS = 额定满功率） ---------- */
+    const powerDb = Math.min(dbfs, 0);
+    const power = POWER_SPECS[band].maxW * Math.pow(10, powerDb / 10);
+
+    /* 指数平滑，让读数稳定 */
+    row.powerSmooth += (power - row.powerSmooth) * (1 - Math.exp(-dt / 160));
+
+    /* 更新功率卡片 */
+    const card = powerCards.find(c =>
+      c.def.band === band && c.def.ch === ch);
+
+    if (card) {
+      const p = row.powerSmooth;
+      const maxW = POWER_SPECS[band].maxW;
+      const pct = Math.min(p / maxW, 1);
+      const watts = p < 0.05 ? 0 : p;
+
+      /* 数值 */
+      let display;
+      if (watts === 0) display = '0.0';
+      else if (watts < 10) display = watts.toFixed(2);
+      else if (watts < 100) display = watts.toFixed(1);
+      else display = Math.round(watts).toString();
+
+      if (card.valueEl.dataset.v !== display) {
+        card.valueEl.dataset.v = display;
+        card.valueEl.innerHTML = display + '<small>W</small>';
+      }
+
+      /* 颜色 */
+      const cls = clipOn ? 'clip' : (pct > 0.75 ? 'hot' : (pct > 0.45 ? 'warn' : ''));
+      card.valueEl.className = 'pc-value' + (cls ? ' ' + cls : '');
+      card.fillEl.className = 'pc-fill' + (cls ? ' ' + cls : '');
+      card.fillEl.style.width = (pct * 100).toFixed(1) + '%';
+    }
+  }
+
+  /* ---------- 时间 ---------- */
+  if (isFinite(audio.duration) && audio.duration > 0) {
+    timeEl.textContent =
+      `${fmtTime(audio.currentTime)} / ${fmtTime(audio.duration)}`;
+  } else if (audio.src) {
+    timeEl.textContent = `${fmtTime(audio.currentTime)} / --:--`;
+  }
+}
+
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

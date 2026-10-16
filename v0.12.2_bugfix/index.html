@@ -1,0 +1,2517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DA-1000 · 双通道功放电平表</title>
+<style>
+  /* =========================================================
+     主题变量
+     ========================================================= */
+  :root{
+    --page-1:#1b1f24; --page-2:#0a0b0d; --page-3:#050607;
+    --amp-1:#3a4048; --amp-2:#262a2f; --amp-3:#1c1f23; --amp-4:#15181b;
+    --amp-bd:#08090b;
+    --amp-sh1:rgba(255,255,255,.06);
+    --amp-sh2:rgba(0,0,0,.75);
+    --amp-drop:rgba(0,0,0,.85);
+    --head-1:rgba(255,255,255,.05); --head-2:rgba(255,255,255,0);
+    --head-bd:rgba(0,0,0,.6);
+    --panel-1:#0b0d0f; --panel-2:#101316;
+    --panel-sh:rgba(0,0,0,.95);
+    --panel-hl:rgba(255,255,255,.045);
+    --panel2-1:#14171a; --panel2-2:#0f1214;
+    --panel2-bd:rgba(0,0,0,.5);
+    --panel2-sh:rgba(0,0,0,.6);
+    --card-1:#0b0d0f; --card-2:#0e1113;
+    --card-bd:#000;
+    --card-sh:rgba(0,0,0,.7);
+    --input-1:#0d1012; --input-2:#090b0d;
+    --input-bd:#0a0c0e;
+    --input-sh:rgba(0,0,0,.75);
+    --sel-bg:#14171a;
+    --sel-bg-2:#1c2024;
+    --sys-1:#181c20; --sys-2:#0f1214;
+    --sys-bd:rgba(0,0,0,.55);
+    --sys-sh:rgba(0,0,0,.55);
+    --mains-1:#0d1013; --mains-2:#090b0e;
+    --mains-bd:rgba(0,0,0,.7);
+    --mains-sh:rgba(0,0,0,.7);
+    --mains-cell-1:#101418; --mains-cell-2:#0a0c0e;
+    --energy-1:#0e1114; --energy-2:#0a0c0e;
+    --energy-bd:rgba(0,0,0,.7);
+    --energy-sh:rgba(0,0,0,.7);
+    --kwh-1:#0c1a12; --kwh-2:#091410; --kwh-3:#0a0c0e;
+    --kwh-bd:rgba(46,224,110,.20);
+    --kwh-glow:rgba(46,224,110,.09);
+    --avg-cell-1:#101418; --avg-cell-2:#0a0c0e;
+    --avg-cell-bd:#0a0c0e;
+    --avg-since-1:#0e1a14; --avg-since-2:#0a1010;
+    --avg-since-bd:rgba(46,224,110,.22);
+    --tx-1:#c9ced6;
+    --tx-2:#98a1ab;
+    --tx-3:#767e88;
+    --tx-4:#5b636d;
+    --tx-5:#4e565f;
+    --tx-accent:#8fe8b0;
+    --tx-accent-dim:#5a8070;
+    --tx-blue:#8ca8c4;
+    --divider:rgba(255,255,255,.06);
+    --foot-1:rgba(255,255,255,.028);
+    --foot-2:rgba(0,0,0,.15);
+    --foot-bd:rgba(0,0,0,.55);
+    --btn-1:#3b4149; --btn-2:#23272c;
+    --btn-1h:#474e57; --btn-2h:#2a2f35;
+    --btn-tx:#d3d9e0;
+    --btn-bd:#000;
+    --btn-sh-b:rgba(0,0,0,.13);
+    --btn-sh-t:rgba(255,255,255,.13);
+    --btn-pr-1:#2f6b45; --btn-pr-2:#1c4429;
+    --btn-pr-1h:#37804f; --btn-pr-2h:#204e2f;
+    --btn-pr-tx:#c6f5d8;
+    --refresh-1:rgba(255,255,255,.025);
+    --refresh-2:rgba(0,0,0,.2);
+    --refresh-bd:rgba(0,0,0,.6);
+    --theme-bg:rgba(255,255,255,.04);
+    --theme-bg-h:rgba(255,255,255,.09);
+    --theme-bd:rgba(255,255,255,.06);
+    --theme-icon:#c9ced6;
+    --icon-primary:#7c9ab8;
+    --icon-secondary:#767e88;
+    --led-off-1:#1c1f24; --led-off-2:#121417;
+    --led-blue-bg-1:#141d2b; --led-blue-bg-2:#0d1319;
+    --led-green-bg-1:#13251b; --led-green-bg-2:#0d1712;
+    --led-yellow-bg-1:#2a2414; --led-yellow-bg-2:#18150c;
+    --led-amber-bg-1:#2a1f11; --led-amber-bg-2:#18120a;
+    --led-orange-bg-1:#2b1a11; --led-orange-bg-2:#180f0a;
+    --led-red-bg-1:#2b1517; --led-red-bg-2:#180d0f;
+  }
+
+  body.light{
+    --page-1:#eef1f5; --page-2:#dde2e9; --page-3:#cfd6de;
+    --amp-1:#ffffff; --amp-2:#f4f6f9; --amp-3:#eaeef2; --amp-4:#e0e5eb;
+    --amp-bd:#c4cbd3;
+    --amp-sh1:rgba(255,255,255,.9);
+    --amp-sh2:rgba(0,0,0,.08);
+    --amp-drop:rgba(40,50,65,.18);
+    --head-1:rgba(255,255,255,.65); --head-2:rgba(255,255,255,0);
+    --head-bd:rgba(0,0,0,.08);
+    --panel-1:#ffffff; --panel-2:#f4f6f9;
+    --panel-sh:rgba(0,0,0,.06);
+    --panel-hl:rgba(255,255,255,.9);
+    --panel2-1:#f9fafc; --panel2-2:#eff2f6;
+    --panel2-bd:rgba(0,0,0,.06);
+    --panel2-sh:rgba(0,0,0,.06);
+    --card-1:#ffffff; --card-2:#f4f6f9;
+    --card-bd:rgba(0,0,0,.06);
+    --card-sh:rgba(0,0,0,.06);
+    --input-1:#fafbfc; --input-2:#eef1f5;
+    --input-bd:#c4cbd3;
+    --input-sh:rgba(0,0,0,.05);
+    --sel-bg:#f4f6f9;
+    --sel-bg-2:#ffffff;
+    --sys-1:#f6f8fa; --sys-2:#e9edf2;
+    --sys-bd:rgba(0,0,0,.07);
+    --sys-sh:rgba(0,0,0,.05);
+    --mains-1:#f6f8fa; --mains-2:#e9edf2;
+    --mains-bd:rgba(0,0,0,.08);
+    --mains-sh:rgba(0,0,0,.05);
+    --mains-cell-1:#ffffff; --mains-cell-2:#f2f4f8;
+    --energy-1:#f6f8fa; --energy-2:#e9edf2;
+    --energy-bd:rgba(0,0,0,.08);
+    --energy-sh:rgba(0,0,0,.05);
+    --kwh-1:#e6f7ed; --kwh-2:#dcf0e5; --kwh-3:#d2eadb;
+    --kwh-bd:rgba(20,140,70,.25);
+    --kwh-glow:rgba(20,140,70,.07);
+    --avg-cell-1:#ffffff; --avg-cell-2:#f0f3f7;
+    --avg-cell-bd:rgba(0,0,0,.07);
+    --avg-since-1:#e6f7ed; --avg-since-2:#dcf0e5;
+    --avg-since-bd:rgba(20,140,70,.25);
+    --tx-1:#2a3038;
+    --tx-2:#4b5560;
+    --tx-3:#5b636d;
+    --tx-4:#767e88;
+    --tx-5:#98a1ab;
+    --tx-accent:#0d8040;
+    --tx-accent-dim:#0a5a30;
+    --tx-blue:#3a6d94;
+    --divider:rgba(0,0,0,.07);
+    --foot-1:rgba(255,255,255,.55);
+    --foot-2:rgba(0,0,0,.025);
+    --foot-bd:rgba(0,0,0,.08);
+    --btn-1:#ffffff; --btn-2:#e8ecf1;
+    --btn-1h:#f7f9fb; --btn-2h:#dde2e8;
+    --btn-tx:#2a3038;
+    --btn-bd:#c4cbd3;
+    --btn-sh-b:rgba(0,0,0,.08);
+    --btn-sh-t:rgba(255,255,255,.9);
+    --btn-pr-1:#2f8a55; --btn-pr-2:#1c5a34;
+    --btn-pr-1h:#37a065; --btn-pr-2h:#206b3d;
+    --btn-pr-tx:#ffffff;
+    --refresh-1:rgba(255,255,255,.7);
+    --refresh-2:rgba(0,0,0,.03);
+    --refresh-bd:#c4cbd3;
+    --theme-bg:rgba(0,0,0,.035);
+    --theme-bg-h:rgba(0,0,0,.08);
+    --theme-bd:rgba(0,0,0,.08);
+    --theme-icon:#5b636d;
+    --icon-primary:#3a6d94;
+    --icon-secondary:#5b636d;
+    --led-off-1:#e2e6eb; --led-off-2:#d0d6dd;
+    --led-blue-bg-1:#e6eef7; --led-blue-bg-2:#d6e2ef;
+    --led-green-bg-1:#e1f1e7; --led-green-bg-2:#d0e6d8;
+    --led-yellow-bg-1:#f7f1da; --led-yellow-bg-2:#ede4c4;
+    --led-amber-bg-1:#f7ebda; --led-amber-bg-2:#eddcc4;
+    --led-orange-bg-1:#f7e4da; --led-orange-bg-2:#edd0c4;
+    --led-red-bg-1:#f7dcde; --led-red-bg-2:#edc8cb;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;display:grid;place-items:center;
+    background:radial-gradient(circle at 50% -10%,var(--page-1) 0%,var(--page-2) 60%,var(--page-3) 100%);
+    font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    color:var(--tx-1);-webkit-font-smoothing:antialiased;
+    padding:20px 12px;
+    transition:background .35s ease,color .35s ease;
+  }
+
+  .amp{
+    width:min(1000px,97vw);
+    border-radius:16px;
+    border:1px solid var(--amp-bd);
+    background:linear-gradient(180deg,var(--amp-1) 0%,var(--amp-2) 6%,var(--amp-3) 55%,var(--amp-4) 100%);
+    box-shadow:
+      0 42px 90px var(--amp-drop),
+      0 2px 0 var(--amp-sh1) inset,
+      0 -2px 0 var(--amp-sh2) inset;
+    position:relative;
+    overflow:hidden;
+    transition:background .35s ease,border-color .35s ease,box-shadow .35s ease;
+  }
+  .amp::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+    background:repeating-linear-gradient(90deg,
+      rgba(127,127,127,.035) 0 1px, transparent 1px 3px);
+  }
+  .amp > *{position:relative;z-index:1}
+
+  .amp-head{
+    display:flex;align-items:center;gap:16px;
+    padding:12px 22px;
+    border-bottom:1px solid var(--head-bd);
+    background:linear-gradient(180deg,var(--head-1),var(--head-2));
+    transition:border-color .35s ease,background .35s ease;
+  }
+
+  .pwr{display:flex;align-items:center;gap:7px;font-size:9px;letter-spacing:.24em;color:var(--tx-4);font-weight:600}
+  .pwr i{
+    width:7px;height:7px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#b6ffcf,#25e06a 45%,#0a7a34);
+    box-shadow:0 0 7px rgba(37,224,106,.9),0 0 18px rgba(37,224,106,.45);
+    animation:breathe 3.4s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{opacity:1}50%{opacity:.55}}
+
+  .title{display:flex;align-items:baseline;gap:11px;min-width:0}
+  .model{font-size:14px;font-weight:700;letter-spacing:.26em;color:var(--tx-1);text-shadow:0 1px 0 rgba(0,0,0,.15)}
+  .desc{font-size:9px;letter-spacing:.2em;color:var(--tx-4);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brand{margin-left:auto;font-size:9px;letter-spacing:.3em;color:var(--tx-5);font-weight:600}
+
+  .theme-btn{
+    order:-1;
+    width:30px;height:30px;padding:0;
+    border-radius:50%;
+    border:1px solid var(--theme-bd);
+    background:var(--theme-bg);
+    color:var(--theme-icon);
+    cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+    transition:background .2s,border-color .2s,color .2s,transform .15s;
+    font-family:inherit;
+    flex:none;
+  }
+  .theme-btn:hover{background:var(--theme-bg-h);transform:rotate(15deg)}
+  .theme-btn:active{transform:scale(.94)}
+  .theme-btn svg{width:15px;height:15px;fill:none}
+  .theme-btn .icon-moon{display:none}
+  body.light .theme-btn .icon-moon{display:block}
+  body.light .theme-btn .icon-sun{display:none}
+
+  .icon{
+    width:13px;height:13px;flex:none;
+    fill:none;stroke:currentColor;
+    stroke-width:1.3;
+    stroke-linecap:round;stroke-linejoin:round;
+    opacity:.92;
+  }
+  .icon.fill{fill:currentColor;stroke:none}
+  .icon-sm{width:12px;height:12px}
+
+  .meter-panel{
+    margin:14px 18px 0;padding:14px 18px 12px;border-radius:11px;
+    background:linear-gradient(180deg,var(--panel-1) 0%,var(--panel-2) 100%);
+    box-shadow:inset 0 4px 16px var(--panel-sh),inset 0 -1px 0 var(--panel-hl),0 1px 0 var(--panel-hl);
+    transition:background .35s ease,box-shadow .35s ease;
+  }
+  .grid3{display:grid;grid-template-columns:100px 1fr 70px;gap:14px;align-items:center}
+  .scale-row{padding:0 0 9px;border-bottom:1px solid var(--divider);margin-bottom:10px}
+  .scale-tag{font-size:8.5px;letter-spacing:.24em;color:var(--tx-4);font-weight:600}
+  .scale-tag.right{text-align:right}
+  .scale-marks{display:grid;grid-template-columns:repeat(8,1fr);gap:7px}
+  .scale-marks span{text-align:center;font-size:8.5px;letter-spacing:.06em;color:var(--tx-5);font-weight:600;font-variant-numeric:tabular-nums}
+  .scale-marks span:last-child{color:#c16b65}
+
+  .ch-row{padding:3px 0}
+  .ch-label{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:600;letter-spacing:.14em;color:var(--tx-3)}
+  .ch-label .side{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:15px;height:15px;border-radius:3px;
+    background:linear-gradient(180deg,var(--amp-2),var(--amp-4));
+    border:1px solid var(--amp-bd);
+    font-size:9px;letter-spacing:0;color:var(--tx-3);
+    box-shadow:inset 0 1px 0 var(--amp-sh1);flex:none;
+  }
+  .ch-label.sub .band{color:var(--tx-blue)}
+  .sep{height:1px;margin:8px 0;background:linear-gradient(90deg,transparent,var(--divider),transparent)}
+
+  .leds{display:grid;grid-template-columns:repeat(8,1fr);gap:7px}
+  .led{
+    position:relative;height:22px;border-radius:4px;overflow:hidden;
+    box-shadow:inset 0 2px 5px rgba(0,0,0,.35),inset 0 -1px 0 rgba(255,255,255,.05),0 1px 0 var(--amp-sh1);
+    transition:background 260ms ease-out, box-shadow 260ms ease-out;
+  }
+  .led::after{
+    content:"";position:absolute;left:0;right:0;top:0;height:52%;
+    border-radius:4px 4px 0 0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(255,255,255,.085),rgba(255,255,255,0));
+  }
+  .led[data-c="blue"]  {background:linear-gradient(180deg,var(--led-blue-bg-1),var(--led-blue-bg-2));--c:#3d9bff;--cd:#0a4a8c;--g:rgba(61,155,255,.55)}
+  .led[data-c="green"] {background:linear-gradient(180deg,var(--led-green-bg-1),var(--led-green-bg-2));--c:#2ee06e;--cd:#0a6730;--g:rgba(46,224,110,.48)}
+  .led[data-c="yellow"]{background:linear-gradient(180deg,var(--led-yellow-bg-1),var(--led-yellow-bg-2));--c:#f2d13a;--cd:#8a6f08;--g:rgba(242,209,58,.48)}
+  .led[data-c="amber"] {background:linear-gradient(180deg,var(--led-amber-bg-1),var(--led-amber-bg-2));--c:#ff9d2e;--cd:#8a4c04;--g:rgba(255,157,46,.55)}
+  .led[data-c="orange"]{background:linear-gradient(180deg,var(--led-orange-bg-1),var(--led-orange-bg-2));--c:#ff6a2b;--cd:#8c2c05;--g:rgba(255,106,43,.58)}
+  .led[data-c="red"]   {background:linear-gradient(180deg,var(--led-red-bg-1),var(--led-red-bg-2));--c:#ff3b30;--cd:#8f0d06;--g:rgba(255,59,48,.65)}
+
+  .led.on{
+    background:radial-gradient(ellipse 150% 130% at 50% 34%,rgba(255,255,255,.94) 0%,var(--c) 40%,var(--cd) 100%);
+    box-shadow:0 0 6px var(--c),0 0 15px var(--g),0 0 30px var(--g),
+      inset 0 1px 1px rgba(255,255,255,.6),inset 0 -1px 3px rgba(0,0,0,.3);
+    transition:background 30ms linear, box-shadow 30ms linear;
+  }
+
+  .ch-db{text-align:right;font-size:11.5px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--tx-3);transition:color .14s;letter-spacing:.02em}
+  .ch-db.hot{color:#c8881a;text-shadow:0 0 10px rgba(255,208,90,.35)}
+  .ch-db.clip{color:#d3392e;text-shadow:0 0 12px rgba(255,59,48,.45)}
+
+  .control-panel{
+    margin:12px 18px 0;padding:14px 18px 10px;border-radius:11px;
+    background:linear-gradient(180deg,var(--panel2-1) 0%,var(--panel2-2) 100%);
+    border:1px solid var(--panel2-bd);
+    box-shadow:inset 0 2px 10px var(--panel2-sh),0 1px 0 var(--panel-hl);
+    transition:background .35s ease,border-color .35s ease,box-shadow .35s ease;
+  }
+  .knobs-row{display:flex;align-items:flex-start;justify-content:center;gap:6px;flex-wrap:wrap}
+  .knob-item{display:flex;flex-direction:column;align-items:center;width:88px;user-select:none}
+  .knob-item + .knob-item{margin-left:2px}
+
+  .knob-svg{width:76px;height:76px;cursor:grab;touch-action:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,.4));transition:filter .15s}
+  .knob-svg:hover{filter:drop-shadow(0 4px 8px rgba(0,0,0,.4)) brightness(1.08)}
+  .knob-svg.dragging{cursor:grabbing}
+
+  .knob-tick{stroke:var(--tx-5);stroke-width:1.4;stroke-linecap:round}
+  .knob-tick.major{stroke:var(--tx-3);stroke-width:2}
+  .knob-body{fill:url(#knobGrad);stroke:var(--amp-bd);stroke-width:.8}
+  .knob-indicator{stroke:#e8ecf1;stroke-width:2.8;stroke-linecap:round;filter:drop-shadow(0 0 3px rgba(255,255,255,.55))}
+  .knob-cap{fill:url(#capGrad);stroke:rgba(0,0,0,.45);stroke-width:.6}
+
+  .knob-label{margin-top:5px;text-align:center;line-height:1.15}
+  .knob-name{display:block;font-size:9px;font-weight:700;letter-spacing:.14em;color:var(--tx-3)}
+  .knob-sub{display:block;font-size:7.5px;letter-spacing:.1em;color:var(--tx-4);margin-top:1px}
+  .knob-item.sens .knob-name{color:var(--tx-blue)}
+
+  .knob-input{
+    margin-top:4px;width:72px;height:19px;padding:0 3px;border-radius:3px;
+    border:1px solid var(--input-bd);
+    background:linear-gradient(180deg,var(--input-1),var(--input-2));
+    color:var(--tx-3);font-size:9px;font-family:inherit;
+    font-variant-numeric:tabular-nums;letter-spacing:.03em;
+    text-align:center;outline:none;
+    box-shadow:inset 0 1px 3px var(--input-sh);
+    transition:color .15s,border-color .15s,box-shadow .15s,background .35s;
+  }
+  .knob-input:hover{color:var(--tx-2);border-color:var(--tx-5)}
+  .knob-input:focus{color:var(--tx-1);border-color:#3a5b7a;
+    box-shadow:inset 0 1px 3px var(--input-sh),0 0 7px rgba(61,155,255,.4);}
+
+  .knob-divider{width:1px;align-self:stretch;margin:8px 10px;background:linear-gradient(180deg,transparent,var(--divider),transparent)}
+
+  .power-panel{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    gap:10px;margin:12px 18px 0;
+  }
+  .power-card{
+    background:linear-gradient(180deg,var(--card-1),var(--card-2));
+    border:1px solid var(--card-bd);border-radius:8px;
+    padding:9px 11px 10px;
+    box-shadow:inset 0 2px 8px var(--card-sh),0 1px 0 var(--panel-hl);
+    position:relative;overflow:hidden;
+    transition:background .35s ease,border-color .35s ease,box-shadow .35s ease;
+  }
+  .pc-name{font-size:8.5px;font-weight:700;letter-spacing:.16em;color:var(--tx-3);margin-bottom:5px}
+  .pc-name.sub{color:var(--tx-blue)}
+
+  .pc-value{
+    font-size:22px;font-weight:300;line-height:1;
+    color:var(--tx-accent);font-variant-numeric:tabular-nums;
+    text-shadow:0 0 14px rgba(46,224,110,.3);
+    transition:color .15s,text-shadow .15s;
+    letter-spacing:-.02em;
+  }
+  .pc-value small{font-size:10px;font-weight:500;color:var(--tx-4);margin-left:2px;letter-spacing:.06em;text-shadow:none}
+  .pc-value.warn{color:#c8881a;text-shadow:0 0 14px rgba(255,208,90,.25)}
+  .pc-value.hot{color:#cf5a2e;text-shadow:0 0 14px rgba(255,106,43,.3)}
+  .pc-value.clip{color:#d3392e;text-shadow:0 0 16px rgba(255,59,48,.4)}
+
+  .pc-bar{height:4px;border-radius:2px;margin-top:7px;background:rgba(127,127,127,.14);box-shadow:inset 0 1px 3px rgba(0,0,0,.35);overflow:hidden}
+  .pc-fill{height:100%;width:0%;border-radius:2px;background:linear-gradient(90deg,#2ee06e,#8fe8b0);box-shadow:0 0 6px rgba(46,224,110,.5);transition:width 60ms linear,box-shadow 160ms}
+  .pc-fill.warn{background:linear-gradient(90deg,#f2d13a,#ffd05a);box-shadow:0 0 6px rgba(242,209,58,.55)}
+  .pc-fill.hot{background:linear-gradient(90deg,#ff9d2e,#ff7a4d);box-shadow:0 0 6px rgba(255,157,46,.6)}
+  .pc-fill.clip{background:linear-gradient(90deg,#ff3b30,#ff5b52);box-shadow:0 0 8px rgba(255,59,48,.7)}
+
+  .pc-select{
+    display:block;width:100%;margin-top:7px;height:22px;
+    padding:0 18px 0 6px;border-radius:3px;
+    border:1px solid var(--input-bd);background-color:var(--sel-bg);
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'><path d='M1 1l3 3 3-3' fill='none' stroke='%23707880' stroke-width='1.1' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;
+    color:var(--tx-2);font-size:8.5px;font-family:inherit;letter-spacing:.03em;
+    cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;
+    transition:color .15s,border-color .15s,box-shadow .15s,background-color .35s;
+    text-overflow:ellipsis;
+  }
+  .pc-select:hover{color:var(--tx-1);border-color:var(--tx-5)}
+  .pc-select:focus{border-color:#3a5b7a;box-shadow:0 0 7px rgba(61,155,255,.4);color:var(--tx-1)}
+  .pc-select option{background:var(--sel-bg-2);color:var(--tx-1)}
+
+  .pc-custom{
+    display:none;width:100%;margin-top:5px;height:20px;padding:0 6px;
+    border-radius:3px;border:1px solid var(--input-bd);
+    background:linear-gradient(180deg,var(--input-1),var(--input-2));
+    color:var(--tx-2);font-size:9px;font-family:inherit;
+    outline:none;box-shadow:inset 0 1px 3px var(--input-sh);
+    transition:background .35s,border-color .15s;
+  }
+  .pc-custom.show{display:block}
+  .pc-custom:focus{border-color:#3a5b7a;color:var(--tx-1)}
+
+  .pc-foot{
+    display:flex;justify-content:space-between;align-items:center;
+    gap:6px;margin-top:8px;padding-top:7px;
+    border-top:1px solid var(--divider);
+  }
+
+  .pc-pct{
+    font-size:11.5px;font-weight:700;letter-spacing:.02em;
+    font-variant-numeric:tabular-nums;
+    color:var(--tx-accent);transition:color .15s,text-shadow .15s;
+    text-shadow:0 0 8px rgba(46,224,110,.25);
+    flex-shrink:0;
+  }
+  .pc-pct.warn{color:#c8881a;text-shadow:0 0 8px rgba(255,208,90,.3)}
+  .pc-pct.hot{color:#cf5a2e;text-shadow:0 0 10px rgba(255,157,46,.35)}
+  .pc-pct.clip{
+    color:#d3392e;
+    text-shadow:0 0 10px rgba(255,59,48,.6),0 0 20px rgba(255,59,48,.3);
+    animation:alertPulse 1.1s ease-in-out infinite;
+  }
+  @keyframes alertPulse{0%,100%{opacity:1}50%{opacity:.7}}
+
+  .pc-lim{
+    display:inline-flex;align-items:center;gap:4px;
+    font-size:9px;color:var(--tx-4);letter-spacing:.08em;font-weight:600;
+    flex-shrink:0;
+  }
+  .pc-lim input{
+    width:52px;height:20px;padding:0 5px;border-radius:3px;
+    border:1px solid var(--input-bd);
+    background:linear-gradient(180deg,var(--input-1),var(--input-2));
+    color:var(--tx-2);font-size:10px;font-family:inherit;
+    font-variant-numeric:tabular-nums;text-align:right;
+    outline:none;box-shadow:inset 0 1px 3px var(--input-sh);
+    transition:background .35s,color .15s,border-color .15s;
+  }
+  .pc-lim input:focus{border-color:#3a5b7a;color:var(--tx-1)}
+  .pc-lim input.warn{
+    border-color:#a63a32;color:#d3392e;
+    box-shadow:inset 0 1px 3px var(--input-sh),0 0 7px rgba(255,59,48,.35);
+  }
+
+  .pc-spl{
+    display:flex;justify-content:space-between;gap:3px;
+    margin-top:8px;padding-top:7px;
+    border-top:1px solid var(--divider);
+  }
+  .pc-spl.hidden{display:none}
+
+  .spl-cell{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px}
+  .spl-label{
+    font-size:7px;font-weight:700;letter-spacing:.08em;
+    color:var(--tx-5);text-transform:uppercase;
+    white-space:nowrap;font-variant-numeric:tabular-nums;
+  }
+  .spl-val{
+    font-size:12px;font-weight:400;
+    font-variant-numeric:tabular-nums;
+    color:var(--tx-blue);letter-spacing:-.01em;
+    transition:color .15s,text-shadow .15s;
+    white-space:nowrap;line-height:1;
+  }
+  .spl-val small{font-size:7.5px;color:var(--tx-4);margin-left:1px;font-weight:500}
+  .spl-cell.loud .spl-val{color:#c8881a;text-shadow:0 0 8px rgba(255,208,90,.25)}
+  .spl-cell.loud .spl-val small{color:#8a6f08}
+  .spl-cell.danger .spl-val{color:#d3392e;text-shadow:0 0 10px rgba(255,59,48,.4)}
+  .spl-cell.danger .spl-val small{color:#8f0d06}
+
+  .system-panel{
+    display:grid;
+    grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr;
+    gap:10px;
+    margin:12px 18px 0;
+    padding:12px 16px;
+    border-radius:11px;
+    background:linear-gradient(180deg,var(--sys-1) 0%,var(--sys-2) 100%);
+    border:1px solid var(--sys-bd);
+    box-shadow:inset 0 2px 10px var(--sys-sh),0 1px 0 var(--panel-hl);
+    transition:background .35s ease,border-color .35s ease,box-shadow .35s ease;
+  }
+  .sys-item{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .sys-label{
+    display:flex;align-items:center;gap:5px;
+    font-size:8.5px;font-weight:700;letter-spacing:.16em;
+    color:var(--tx-3);text-transform:uppercase;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .sys-label .icon{color:var(--icon-primary)}
+  .sys-value{
+    font-size:22px;font-weight:300;line-height:1;
+    color:var(--tx-accent);font-variant-numeric:tabular-nums;
+    letter-spacing:-.02em;
+    text-shadow:0 0 14px rgba(46,224,110,.3);
+    transition:color .15s,text-shadow .15s;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .sys-value small{font-size:10px;font-weight:500;color:var(--tx-4);margin-left:2px;letter-spacing:.06em;text-shadow:none}
+  .sys-value.warn{color:#c8881a;text-shadow:0 0 14px rgba(255,208,90,.3)}
+  .sys-value.hot{color:#cf5a2e;text-shadow:0 0 14px rgba(255,106,43,.35)}
+  .sys-value.clip{
+    color:#d3392e;
+    text-shadow:0 0 10px rgba(255,59,48,.6),0 0 22px rgba(255,59,48,.3);
+    animation:alertPulse 1.1s ease-in-out infinite;
+  }
+  .sys-value.idle{color:var(--tx-4);text-shadow:none}
+
+  .sys-bar{
+    height:3px;border-radius:2px;
+    background:rgba(127,127,127,.14);
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.3);
+    overflow:hidden;margin-top:2px;
+  }
+  .sys-fill{
+    height:100%;width:0%;border-radius:2px;
+    background:linear-gradient(90deg,#2ee06e,#8fe8b0);
+    box-shadow:0 0 6px rgba(46,224,110,.5);
+    transition:width 80ms linear,box-shadow 160ms;
+  }
+  .sys-fill.warn{background:linear-gradient(90deg,#f2d13a,#ffd05a);box-shadow:0 0 6px rgba(242,209,58,.55)}
+  .sys-fill.hot{background:linear-gradient(90deg,#ff9d2e,#ff7a4d);box-shadow:0 0 6px rgba(255,157,46,.6)}
+  .sys-fill.clip{background:linear-gradient(90deg,#ff3b30,#ff5b52);box-shadow:0 0 8px rgba(255,59,48,.7)}
+
+  .sys-select{
+    height:26px;
+    padding:0 22px 0 8px;
+    border-radius:3px;
+    border:1px solid var(--input-bd);
+    background-color:var(--sel-bg);
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'><path d='M1 1l3 3 3-3' fill='none' stroke='%23707880' stroke-width='1.1' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 8px center;
+    background-size:8px 5px;
+    color:var(--tx-1);font-size:11.5px;font-family:inherit;
+    letter-spacing:.03em;font-weight:500;
+    cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;
+    box-shadow:inset 0 1px 3px var(--input-sh);
+    transition:color .15s,border-color .15s,box-shadow .15s,background-color .35s;
+    text-overflow:ellipsis;
+  }
+  .sys-select:hover{color:var(--tx-1);border-color:var(--tx-5)}
+  .sys-select:focus{border-color:#3a5b7a;box-shadow:inset 0 1px 3px var(--input-sh),0 0 7px rgba(61,155,255,.4)}
+  .sys-select option{background:var(--sel-bg-2);color:var(--tx-1)}
+
+  .sys-input{
+    display:none;
+    width:100%;height:24px;padding:0 7px;
+    margin-top:2px;
+    border-radius:3px;border:1px solid var(--input-bd);
+    background:linear-gradient(180deg,var(--input-1),var(--input-2));
+    color:var(--tx-1);font-size:11px;font-family:inherit;
+    font-variant-numeric:tabular-nums;
+    outline:none;box-shadow:inset 0 1px 3px var(--input-sh);
+    transition:background .35s;
+  }
+  .sys-input.show{display:block}
+  .sys-input:focus{border-color:#3a5b7a;color:var(--tx-1)}
+
+  .mains-panel{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin:12px 18px 0;
+    padding:12px 16px;
+    border-radius:11px;
+    background:linear-gradient(180deg,var(--mains-1) 0%,var(--mains-2) 100%);
+    border:1px solid var(--mains-bd);
+    box-shadow:inset 0 2px 10px var(--mains-sh),0 1px 0 var(--panel-hl);
+    transition:background .35s ease,border-color .35s ease,box-shadow .35s ease;
+  }
+  .mains-title{
+    display:flex;flex-direction:column;gap:3px;flex:0 0 auto;padding-right:14px;
+    border-right:1px solid var(--divider);
+  }
+  .mains-title-line{display:flex;align-items:center;gap:6px}
+  .mains-title-line .icon{color:var(--icon-primary)}
+  .mains-title-main{
+    font-size:10px;font-weight:700;letter-spacing:.18em;
+    color:var(--tx-blue);text-transform:uppercase;
+  }
+  .mains-title-sub{
+    font-size:8px;font-weight:600;letter-spacing:.12em;
+    color:var(--tx-4);padding-left:19px;
+  }
+  .mains-cells{
+    flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  }
+  .mains-cell{
+    display:flex;align-items:center;gap:10px;
+    padding:7px 11px;
+    border-radius:6px;
+    background:linear-gradient(180deg,var(--mains-cell-1),var(--mains-cell-2));
+    border:1px solid var(--input-bd);
+    box-shadow:inset 0 1px 3px var(--input-sh);
+    min-width:0;
+    transition:background .35s;
+  }
+  .mc-phase{
+    font-size:10px;font-weight:700;letter-spacing:.1em;
+    color:var(--tx-blue);
+    flex:0 0 auto;
+    padding:2px 6px;
+    border-radius:3px;
+    background:linear-gradient(180deg,var(--amp-2),var(--amp-4));
+    border:1px solid var(--amp-bd);
+    box-shadow:inset 0 1px 0 var(--amp-sh1);
+  }
+  .mc-values{
+    display:flex;align-items:baseline;gap:12px;margin-left:auto;
+    font-variant-numeric:tabular-nums;
+  }
+  .mc-volt{
+    font-size:15px;font-weight:400;
+    color:var(--tx-accent);
+    letter-spacing:-.01em;
+    transition:color .2s;
+    white-space:nowrap;
+  }
+  .mc-volt.warn{color:#c8881a}
+  .mc-volt.hot{color:#cf5a2e}
+  .mc-volt small{font-size:8px;font-weight:500;color:var(--tx-4);margin-left:2px;letter-spacing:.06em}
+  .mc-amp{
+    font-size:15px;font-weight:300;
+    color:var(--tx-1);
+    letter-spacing:-.01em;
+    white-space:nowrap;
+  }
+  .mc-amp small{font-size:8px;font-weight:500;color:var(--tx-4);margin-left:2px;letter-spacing:.06em}
+
+  .energy-panel{
+    display:grid;
+    grid-template-columns:minmax(220px,1fr) 1.6fr;
+    gap:14px;
+    margin:12px 18px 16px;
+    padding:14px 16px;
+    border-radius:11px;
+    background:linear-gradient(180deg,var(--energy-1) 0%,var(--energy-2) 100%);
+    border:1px solid var(--energy-bd);
+    box-shadow:inset 0 2px 10px var(--energy-sh),0 1px 0 var(--panel-hl);
+    transition:background .35s ease,border-color .35s ease,box-shadow .35s ease;
+  }
+
+  .en-left{display:flex;flex-direction:column;gap:9px;min-width:0}
+
+  .en-kwh-card{
+    flex:1;
+    padding:12px 14px 11px;
+    border-radius:8px;
+    background:linear-gradient(135deg,var(--kwh-1) 0%,var(--kwh-2) 50%,var(--kwh-3) 100%);
+    border:1px solid var(--kwh-bd);
+    box-shadow:
+      inset 0 1px 0 var(--panel-hl),
+      inset 0 0 26px var(--kwh-glow),
+      0 1px 0 var(--panel-hl);
+    position:relative;
+    overflow:hidden;
+    min-width:0;
+    transition:background .35s ease,border-color .35s ease,box-shadow .35s ease;
+  }
+  .en-kwh-card::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(circle at 0% 100%,var(--kwh-glow),transparent 55%);
+  }
+
+  .en-kwh-label{
+    display:flex;align-items:center;gap:6px;
+    font-size:8px;font-weight:700;letter-spacing:.22em;
+    color:var(--tx-accent-dim);text-transform:uppercase;
+    margin-bottom:7px;
+    position:relative;
+  }
+  .en-kwh-label .icon{width:12px;height:12px;color:#f0c850}
+
+  .en-kwh-value{
+    display:flex;align-items:baseline;gap:6px;
+    position:relative;
+  }
+  .en-kwh-value > span{
+    font-size:32px;font-weight:300;line-height:1;
+    color:var(--tx-accent);
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-.02em;
+    text-shadow:0 0 20px rgba(46,224,110,.45),0 0 42px rgba(46,224,110,.18);
+    transition:color .2s,text-shadow .2s;
+  }
+  .en-kwh-value > small{
+    font-size:11px;font-weight:600;
+    color:var(--tx-accent-dim);letter-spacing:.08em;
+  }
+
+  .en-meta{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:8px;flex-wrap:wrap;
+  }
+
+  .en-runtime{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:10px;color:var(--tx-4);
+    font-variant-numeric:tabular-nums;
+    letter-spacing:.04em;
+  }
+  .en-runtime .dot{
+    width:5px;height:5px;border-radius:50%;
+    background:#3d8a5a;
+    box-shadow:0 0 5px rgba(61,138,90,.85);
+    animation:breathe 2s ease-in-out infinite;
+    flex:none;
+  }
+
+  .en-right{display:flex;flex-direction:column;gap:9px;min-width:0}
+
+  .en-avg-header{display:flex;align-items:center;gap:9px}
+  .en-avg-title{display:flex;align-items:center;gap:6px;min-width:0}
+  .en-avg-title .icon{color:var(--icon-primary)}
+  .en-avg-header-main{
+    font-size:9px;font-weight:700;letter-spacing:.2em;
+    color:var(--tx-blue);text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .en-avg-header-sub{
+    font-size:7.5px;font-weight:600;letter-spacing:.14em;
+    color:var(--tx-5);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+
+  .en-avg-select{
+    margin-left:auto;
+    height:26px;padding:0 22px 0 10px;
+    border-radius:4px;
+    border:1px solid var(--input-bd);
+    background-color:var(--sel-bg);
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'><path d='M1 1l3 3 3-3' fill='none' stroke='%23707880' stroke-width='1.1' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 8px center;background-size:8px 5px;
+    color:var(--tx-1);font-size:11px;font-family:inherit;
+    letter-spacing:.03em;font-weight:500;
+    cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;
+    box-shadow:inset 0 1px 3px var(--input-sh);
+    transition:border-color .15s,color .15s,background-color .35s;
+    flex:none;
+  }
+  .en-avg-select:hover{border-color:var(--tx-5)}
+  .en-avg-select:focus{border-color:#3a5b7a;box-shadow:inset 0 1px 3px var(--input-sh),0 0 7px rgba(61,155,255,.4)}
+  .en-avg-select option{background:var(--sel-bg-2);color:var(--tx-1)}
+
+  .en-avg-display{
+    flex:1;
+    display:flex;align-items:center;justify-content:center;
+    gap:8px;
+    padding:14px 16px;
+    border-radius:8px;
+    background:linear-gradient(180deg,var(--avg-since-1),var(--avg-since-2));
+    border:1px solid var(--avg-since-bd);
+    box-shadow:
+      inset 0 2px 6px rgba(0,0,0,.15),
+      inset 0 0 20px var(--kwh-glow),
+      0 1px 0 var(--panel-hl);
+    min-width:0;
+    transition:background .35s ease,border-color .35s ease,box-shadow .35s ease;
+    position:relative;
+    overflow:hidden;
+  }
+  .en-avg-display::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(circle at 50% 120%,var(--kwh-glow),transparent 60%);
+  }
+
+  .en-avg-value{
+    font-size:38px;font-weight:300;line-height:1;
+    color:var(--tx-accent);
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-.025em;
+    text-shadow:0 0 22px rgba(46,224,110,.4),0 0 48px rgba(46,224,110,.15);
+    position:relative;
+    transition:color .2s,text-shadow .2s;
+  }
+  .en-avg-unit{
+    font-size:13px;font-weight:600;
+    color:var(--tx-accent-dim);
+    letter-spacing:.08em;
+    position:relative;
+    align-self:flex-end;
+    padding-bottom:5px;
+  }
+
+  .amp-foot{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 22px 16px;
+    border-top:1px solid var(--foot-bd);
+    background:linear-gradient(180deg,var(--foot-1),var(--foot-2));
+    flex-wrap:wrap;
+    transition:background .35s ease,border-color .35s ease;
+  }
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    height:36px;padding:0 20px;border-radius:7px;border:1px solid var(--btn-bd);
+    background:linear-gradient(180deg,var(--btn-1),var(--btn-2));
+    color:var(--btn-tx);font-size:11px;font-weight:600;letter-spacing:.16em;
+    text-transform:uppercase;cursor:pointer;user-select:none;
+    box-shadow:0 2px 0 var(--btn-bd),inset 0 1px 0 var(--btn-sh-t);
+    transition:background .13s,transform .06s,color .2s,border-color .2s;
+    font-family:inherit;
+  }
+  .btn:hover{background:linear-gradient(180deg,var(--btn-1h),var(--btn-2h))}
+  .btn:active{transform:translateY(1px);box-shadow:0 1px 0 var(--btn-bd),inset 0 1px 0 var(--btn-sh-t)}
+  .btn:disabled{opacity:.32;cursor:default;transform:none}
+  .btn.primary{background:linear-gradient(180deg,var(--btn-pr-1),var(--btn-pr-2));color:var(--btn-pr-tx);box-shadow:0 2px 0 var(--btn-bd),inset 0 1px 0 var(--btn-sh-t)}
+  .btn.primary:hover{background:linear-gradient(180deg,var(--btn-pr-1h),var(--btn-pr-2h))}
+
+  .btn.small{
+    height:26px;padding:0 12px;
+    font-size:9.5px;letter-spacing:.14em;
+    gap:5px;
+    border-radius:5px;
+  }
+  .btn.small .icon{width:11px;height:11px}
+  .btn.small.flash{
+    animation:resetFlash 500ms ease-out;
+  }
+  @keyframes resetFlash{
+    0%   {box-shadow:0 2px 0 var(--btn-bd),inset 0 1px 0 var(--btn-sh-t);}
+    30%  {box-shadow:0 0 16px rgba(61,155,255,.75),inset 0 1px 0 rgba(255,255,255,.35);}
+    100% {box-shadow:0 2px 0 var(--btn-bd),inset 0 1px 0 var(--btn-sh-t);}
+  }
+
+  .time{font-size:11.5px;color:var(--tx-4);font-variant-numeric:tabular-nums;letter-spacing:.03em}
+
+  .refresh-wrap{
+    display:inline-flex;align-items:center;gap:7px;
+    padding:0 10px;height:36px;border-radius:7px;
+    border:1px solid var(--refresh-bd);
+    background:linear-gradient(180deg,var(--refresh-1),var(--refresh-2));
+    box-shadow:inset 0 1px 0 var(--panel-hl),0 1px 0 var(--panel-hl);
+    transition:background .35s ease,border-color .35s ease;
+  }
+  .refresh-label{
+    display:inline-flex;align-items:center;gap:5px;
+    font-size:9px;font-weight:700;letter-spacing:.18em;color:var(--tx-3);
+    text-transform:uppercase;
+  }
+  .refresh-label .icon{color:var(--icon-secondary)}
+  .refresh-select{
+    height:24px;padding:0 20px 0 8px;
+    border-radius:4px;border:1px solid var(--input-bd);
+    background-color:var(--sel-bg-2);
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'><path d='M1 1l3 3 3-3' fill='none' stroke='%2398a1ab' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 7px center;background-size:8px 5px;
+    color:var(--tx-1);font-size:10.5px;font-family:inherit;
+    letter-spacing:.04em;font-weight:600;
+    cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;
+    box-shadow:inset 0 1px 3px var(--input-sh);
+    transition:color .15s,border-color .15s,background-color .35s;
+  }
+  .refresh-select:hover{border-color:var(--tx-5)}
+  .refresh-select:focus{border-color:#3a5b7a;box-shadow:inset 0 1px 3px var(--input-sh),0 0 7px rgba(61,155,255,.4)}
+  .refresh-select option{background:var(--sel-bg-2);color:var(--tx-1);padding:4px}
+
+  .fname{margin-left:auto;font-size:10px;color:var(--tx-4);max-width:24%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.04em}
+
+  @media (max-width:920px){
+    .system-panel{grid-template-columns:repeat(3,1fr);gap:10px}
+    .sys-value{font-size:20px}
+  }
+  @media (max-width:780px){
+    .grid3{grid-template-columns:64px 1fr 50px;gap:8px}
+    .leds,.scale-marks{gap:4px}
+    .led{height:16px;border-radius:3px}
+    .ch-label{font-size:9px;gap:5px}
+    .ch-label .side{width:13px;height:13px;font-size:8px}
+    .scale-marks span{font-size:7.5px}
+    .meter-panel{margin:10px 10px 0;padding:10px 12px 8px}
+    .control-panel{margin:10px 10px 0;padding:10px 8px 6px}
+    .knob-item{width:70px}
+    .knob-svg{width:58px;height:58px}
+    .knob-name{font-size:8px}
+    .knob-input{width:58px;font-size:8px;height:17px}
+    .power-panel{grid-template-columns:repeat(2,1fr);margin:10px 10px 0;gap:8px}
+    .pc-value{font-size:19px}
+    .spl-val{font-size:11px}
+    .spl-label{font-size:6.5px}
+    .system-panel{grid-template-columns:repeat(2,1fr);margin:10px 10px 0;gap:9px;padding:10px 12px}
+    .sys-value{font-size:18px}
+    .sys-select{font-size:10.5px;height:24px}
+    .mains-panel{flex-direction:column;align-items:stretch;gap:9px;margin:10px 10px 0;padding:10px 12px}
+    .mains-title{flex-direction:row;align-items:baseline;gap:8px;padding-right:0;border-right:none;border-bottom:1px solid var(--divider);padding-bottom:6px}
+    .mains-title-sub{padding-left:0}
+    .mains-cells{grid-template-columns:1fr;gap:7px}
+    .mc-volt,.mc-amp{font-size:14px}
+    .energy-panel{grid-template-columns:1fr;gap:10px;margin:10px 10px 12px;padding:12px 12px}
+    .en-kwh-value > span{font-size:26px}
+    .en-avg-value{font-size:30px}
+    .en-avg-header{flex-wrap:wrap;gap:6px}
+    .en-avg-select{margin-left:0}
+    .fname{display:none}
+    .brand,.desc{display:none}
+    .refresh-label span{display:none}
+    .refresh-label{gap:0}
+  }
+  @media (max-width:420px){
+    .knob-item{width:60px}
+    .knob-svg{width:50px;height:50px}
+    .knob-input{width:50px}
+    .amp-foot{padding:10px 12px 14px;gap:8px}
+    .btn{padding:0 12px;height:32px;font-size:10px}
+    .refresh-wrap{padding:0 6px;height:32px}
+    .refresh-select{height:22px;font-size:10px}
+    .system-panel{grid-template-columns:1fr 1fr}
+    .sys-value{font-size:16px}
+    .pc-lim input{width:46px}
+    .mc-volt,.mc-amp{font-size:13px}
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <radialGradient id="knobGrad" cx="38%" cy="30%" r="78%">
+      <stop offset="0%"  stop-color="#5a626b"/>
+      <stop offset="35%" stop-color="#3d444c"/>
+      <stop offset="75%" stop-color="#282d33"/>
+      <stop offset="100%" stop-color="#181c20"/>
+    </radialGradient>
+    <radialGradient id="capGrad" cx="38%" cy="32%" r="80%">
+      <stop offset="0%"  stop-color="#454c55"/>
+      <stop offset="60%" stop-color="#2a2f35"/>
+      <stop offset="100%" stop-color="#15181b"/>
+    </radialGradient>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#2a2f35"/>
+      <stop offset="100%" stop-color="#14171a"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<div class="amp">
+
+  <div class="amp-head">
+    <button class="theme-btn" id="themeBtn" type="button" title="切换浅色 / 深色模式" aria-label="切换主题">
+      <svg class="icon-sun" viewBox="0 0 16 16">
+        <circle cx="8" cy="8" r="3.2"/>
+        <path d="M8 1.2v1.8M8 13v1.8M1.2 8h1.8M13 8h1.8M3.2 3.2l1.3 1.3M11.5 11.5l1.3 1.3M3.2 12.8l1.3-1.3M11.5 4.5l1.3-1.3"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 16 16">
+        <path d="M13.5 9.5A6 6 0 0 1 6.5 2.5a6 6 0 1 0 7 7z" fill="currentColor" stroke="none"/>
+      </svg>
+    </button>
+    <div class="pwr"><i></i>PWR</div>
+    <div class="title">
+      <span class="model">DA-1000</span>
+      <span class="desc">Stereo Bi-Amp · Active Crossover · Power Limiter</span>
+    </div>
+    <div class="brand">AUDIO LAB</div>
+  </div>
+
+  <div class="meter-panel">
+    <div class="scale-row grid3">
+      <div class="scale-tag">LEVEL</div>
+      <div class="scale-marks" id="scaleMarks"></div>
+      <div class="scale-tag right">dB</div>
+    </div>
+    <div id="rows"></div>
+  </div>
+
+  <div class="control-panel">
+    <div class="knobs-row" id="knobsRow"></div>
+  </div>
+
+  <div class="power-panel" id="powerPanel"></div>
+
+  <div class="system-panel">
+    <div class="sys-item">
+      <div class="sys-label">
+        <svg class="icon" viewBox="0 0 16 16">
+          <path d="M2 8h4"/>
+          <path d="M6 8l5-4h3"/>
+          <path d="M6 8l5 4h3"/>
+        </svg>
+        分频点
+      </div>
+      <select class="sys-select" id="crossoverSelect">
+        <option value="50">50 Hz</option>
+        <option value="60">60 Hz</option>
+        <option value="80">80 Hz</option>
+        <option value="100">100 Hz</option>
+        <option value="120" selected>120 Hz</option>
+        <option value="150">150 Hz</option>
+        <option value="200">200 Hz</option>
+        <option value="250">250 Hz</option>
+        <option value="custom">自定义 …</option>
+      </select>
+      <input class="sys-input" id="crossoverCustom" type="number" min="20" max="1000" step="1" placeholder="Hz">
+    </div>
+
+    <div class="sys-item">
+      <div class="sys-label">
+        <svg class="icon" viewBox="0 0 16 16">
+          <path d="M2 6v4h2.5L8 13V3L4.5 6H2z" fill="currentColor" stroke="none"/>
+          <path d="M10.5 5.7a3 3 0 0 1 0 4.6"/>
+          <path d="M12.5 3.7a5.5 5.5 0 0 1 0 8.6"/>
+        </svg>
+        总输出功率
+      </div>
+      <div class="sys-value" id="totalOutVal">0<small>W</small></div>
+    </div>
+
+    <div class="sys-item">
+      <div class="sys-label">
+        <svg class="icon" viewBox="0 0 16 16">
+          <path d="M8.2 1L3.5 8.5h3.6L6.8 15l4.7-7.5H7.9L8.2 1z" fill="currentColor" stroke="none"/>
+        </svg>
+        市电消耗
+      </div>
+      <div class="sys-value" id="totalConVal">0<small>W</small></div>
+    </div>
+
+    <div class="sys-item">
+      <div class="sys-label">
+        <svg class="icon" viewBox="0 0 16 16">
+          <circle cx="5" cy="5" r="1.8"/>
+          <circle cx="11" cy="11" r="1.8"/>
+          <path d="M12.5 3.5L3.5 12.5"/>
+        </svg>
+        效率
+      </div>
+      <div class="sys-value" id="effVal">0.0<small>%</small></div>
+      <div class="sys-bar"><div class="sys-fill" id="effFill"></div></div>
+    </div>
+
+    <div class="sys-item">
+      <div class="sys-label">
+        <svg class="icon" viewBox="0 0 16 16">
+          <path d="M2 12a6 6 0 1 1 12 0"/>
+          <path d="M8 12L11 7.5"/>
+          <circle cx="8" cy="12" r="1" fill="currentColor" stroke="none"/>
+        </svg>
+        整体负载
+      </div>
+      <div class="sys-value" id="totalLoadVal">0.0<small>%</small></div>
+      <div class="sys-bar"><div class="sys-fill" id="totalLoadFill"></div></div>
+    </div>
+
+    <div class="sys-item">
+      <div class="sys-label">
+        <svg class="icon" viewBox="0 0 16 16">
+          <path d="M2 8l10-4.5v9L2 8z"/>
+          <path d="M12 5.5h1.5M12 10.5h1.5"/>
+        </svg>
+        功放类别
+      </div>
+      <select class="sys-select" id="ampClassSelect">
+        <option value="AB">AB 类</option>
+        <option value="H">H 类</option>
+        <option value="D" selected>D 类</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="mains-panel">
+    <div class="mains-title">
+      <div class="mains-title-line">
+        <svg class="icon" viewBox="0 0 16 16">
+          <path d="M5 1.5v3M11 1.5v3"/>
+          <path d="M3.5 4.5h9v3a4.5 4.5 0 0 1-9 0V4.5z"/>
+          <path d="M8 12v2.5"/>
+        </svg>
+        <span class="mains-title-main">市电 · 三相</span>
+      </div>
+      <span class="mains-title-sub">MAINS · 3-PHASE AC</span>
+    </div>
+    <div class="mains-cells" id="mainsCells"></div>
+  </div>
+
+  <div class="energy-panel">
+    <div class="en-left">
+      <div class="en-kwh-card">
+        <div class="en-kwh-label">
+          <svg class="icon" viewBox="0 0 16 16">
+            <path d="M8.5 1L3.5 8.8h3.8L6.8 15l5-7.8H7.8L8.5 1z" fill="currentColor" stroke="none"/>
+          </svg>
+          累计电能 · Energy
+        </div>
+        <div class="en-kwh-value">
+          <span id="energyKWh">0.000</span>
+          <small>kWh</small>
+        </div>
+      </div>
+      <div class="en-meta">
+        <button class="btn small" id="resetEnergyBtn" type="button" title="重置电能与平均功率统计">
+          <svg class="icon" viewBox="0 0 16 16">
+            <path d="M2.5 8a5.5 5.5 0 1 0 2-4.25"/>
+            <path d="M2.5 3v3.5H6"/>
+          </svg>
+          重置
+        </button>
+        <span class="en-runtime">
+          <span class="dot"></span>
+          运行 <span id="energyRuntime">00:00:00</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="en-right">
+      <div class="en-avg-header">
+        <div class="en-avg-title">
+          <svg class="icon" viewBox="0 0 16 16">
+            <rect x="2" y="9" width="2.5" height="5" rx=".6" fill="currentColor" stroke="none"/>
+            <rect x="6" y="5" width="2.5" height="9" rx=".6" fill="currentColor" stroke="none"/>
+            <rect x="10" y="2" width="2.5" height="12" rx=".6" fill="currentColor" stroke="none"/>
+          </svg>
+          <span class="en-avg-header-main">平均功率</span>
+        </div>
+        <span class="en-avg-header-sub">AVG · MAINS SIDE</span>
+        <select class="en-avg-select" id="avgSelect">
+          <option value="since">自启动</option>
+          <option value="10m">最近 10 分钟</option>
+          <option value="5m">最近 5 分钟</option>
+          <option value="30s">最近 30 秒</option>
+          <option value="5s">最近 5 秒</option>
+        </select>
+      </div>
+      <div class="en-avg-display" id="avgDisplay">
+        <span class="en-avg-value" id="avgValue">—</span>
+        <span class="en-avg-unit" id="avgUnit">W</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="amp-foot">
+    <label class="btn">
+      <input type="file" id="fileInput" accept="audio/*" hidden>
+      加载音频
+    </label>
+    <button class="btn primary" id="playBtn" disabled>播放</button>
+    <span class="time" id="timeEl">--:-- / --:--</span>
+
+    <label class="refresh-wrap" title="数据刷新速率（整体负载与能量统计除外）">
+      <span class="refresh-label">
+        <svg class="icon" viewBox="0 0 16 16">
+          <path d="M2 8a6 6 0 0 1 11-3"/>
+          <path d="M13 2v3h-3"/>
+          <path d="M14 8a6 6 0 0 1-11 3"/>
+          <path d="M3 14v-3h3"/>
+        </svg>
+        <span>刷新率</span>
+      </span>
+      <select class="refresh-select" id="refreshSelect">
+        <option value="verylow">非常低</option>
+        <option value="low">低</option>
+        <option value="medium">中</option>
+        <option value="high">高</option>
+        <option value="realtime" selected>实时</option>
+      </select>
+    </label>
+
+    <span class="fname" id="fnameEl"></span>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   1. 配置
+   ========================================================= */
+const BASE_REF      = { full: -6, sub: -12 };
+const RELEASE_MS    = 220;
+const CLIP_HOLD     = 1200;
+const CLIP_LEVEL    = 0.985;
+const MAX_LIMIT_PCT = 120;
+
+const MAINS_NOMINAL  = 237;
+const MAINS_MIN      = 220;
+const MAINS_MAX      = 255;
+const MAINS_PF       = 0.92;
+
+let crossoverFreq = 120;
+
+const REFRESH_MODES = {
+  verylow:  { label: '非常低', intervalMs: 250 },
+  low:      { label: '低',     intervalMs: 100 },
+  medium:   { label: '中',     intervalMs: 50  },
+  high:     { label: '高',     intervalMs: 25  },
+  realtime: { label: '实时',   intervalMs: 0   },
+};
+
+const LOAD_REFRESH_MS   = 100;
+const ENERGY_SAMPLE_MS  = 250;
+const ENERGY_HISTORY    = 2400;
+const ENERGY_DISPLAY_MS = 400;
+
+/* =========================================================
+   2. 主题
+   ========================================================= */
+const themeBtn = document.getElementById('themeBtn');
+function applyTheme(theme){
+  if (theme === 'light') document.body.classList.add('light');
+  else                   document.body.classList.remove('light');
+}
+try{
+  const saved = localStorage.getItem('da1000-theme');
+  if (saved === 'light' || saved === 'dark') applyTheme(saved);
+}catch(e){}
+themeBtn.addEventListener('click', () => {
+  const isLight = document.body.classList.toggle('light');
+  try{
+    localStorage.setItem('da1000-theme', isLight ? 'light' : 'dark');
+  }catch(e){}
+});
+
+/* =========================================================
+   3. 功放类别模型
+   ========================================================= */
+const AMP_CLASSES = {
+  AB: { name:'AB', incEff: 0.60, idleBase: 20, idlePerW: 0.08 },
+  H:  { name:'H',  incEff: 0.80, idleBase: 15, idlePerW: 0.04 },
+  D:  { name:'D',  incEff: 0.92, idleBase:  5, idlePerW: 0.01 },
+};
+let ampClass = 'D';
+
+function channelIdleW(maxW, cls) {
+  const c = AMP_CLASSES[cls];
+  return c.idleBase + c.idlePerW * maxW;
+}
+function channelConsumedW(outputW, maxW, cls) {
+  const c = AMP_CLASSES[cls];
+  return channelIdleW(maxW, cls) + outputW / c.incEff;
+}
+
+/* =========================================================
+   4. 扬声器预设
+   ========================================================= */
+const SPEAKER_PRESETS = {
+  full: [
+    { id:'1x8',   label:'单 8"',        maxW: 150,  driver:'1×8"',
+      sens: 94, distFront:  4, distBack: 20 },
+    { id:'1x10',  label:'单 10"',       maxW: 250,  driver:'1×10"',
+      sens: 96, distFront:  6, distBack: 25 },
+    { id:'1x12',  label:'单 12"',       maxW: 400,  driver:'1×12"',
+      sens: 98, distFront: 10, distBack: 40 },
+    { id:'1x15',  label:'单 15"',       maxW: 500,  driver:'1×15"',
+      sens: 99, distFront: 15, distBack: 50 },
+    { id:'2x8',   label:'双 8"',        maxW: 300,  driver:'2×8"',
+      sens: 97, distFront: 10, distBack: 35 },
+    { id:'2x12',  label:'双 12"',       maxW: 800,  driver:'2×12"',
+      sens: 101, distFront: 18, distBack: 60 },
+    { id:'2x15',  label:'双 15"',       maxW: 1000, driver:'2×15"',
+      sens: 102, distFront: 22, distBack: 80 },
+    { id:'la4',   label:'线阵列 4 组',  maxW: 2000, driver:'LA×4',
+      sens: 106, distFront: 20, distBack: 80 },
+    { id:'la6',   label:'线阵列 6 组',  maxW: 3000, driver:'LA×6',
+      sens: 108, distFront: 22, distBack: 100 },
+    { id:'la8',   label:'线阵列 8 组',  maxW: 4000, driver:'LA×8',
+      sens: 109, distFront: 25, distBack: 120 },
+    { id:'custom',label:'自定义 …',      maxW: 1000, driver:'自定义',
+      custom:true },
+  ],
+  sub: [
+    { id:'1x15',  label:'单 15"',       maxW: 800,  driver:'1×15"',
+      sens: 96, distFront:  8, distBack: 30 },
+    { id:'1x18',  label:'单 18"',       maxW: 1200, driver:'1×18"',
+      sens: 98, distFront: 12, distBack: 45 },
+    { id:'1x21',  label:'单 21"',       maxW: 2000, driver:'1×21"',
+      sens: 99, distFront: 15, distBack: 50 },
+    { id:'2x18',  label:'双 18"',       maxW: 2400, driver:'2×18"',
+      sens: 101, distFront: 18, distBack: 65 },
+    { id:'2x21',  label:'双 21"',       maxW: 4000, driver:'2×21"',
+      sens: 102, distFront: 22, distBack: 80 },
+    { id:'la4',   label:'线阵列 4 组',  maxW: 4800, driver:'LA×4',
+      sens: 106, distFront: 20, distBack: 80 },
+    { id:'la6',   label:'线阵列 6 组',  maxW: 7200, driver:'LA×6',
+      sens: 108, distFront: 25, distBack: 100 },
+    { id:'la8',   label:'线阵列 8 组',  maxW: 9600, driver:'LA×8',
+      sens: 109, distFront: 30, distBack: 130 },
+    { id:'custom',label:'自定义 …',      maxW: 2400, driver:'自定义',
+      custom:true },
+  ],
+};
+
+const SCALE = [
+  { label:'SIG',  db:-40, color:'blue'   },
+  { label:'-12',  db:-12, color:'green'  },
+  { label:'-6',   db:-6,  color:'green'  },
+  { label:'-3',   db:-3,  color:'green'  },
+  { label:'0',    db: 0,  color:'yellow' },
+  { label:'+3',   db: 3,  color:'amber'  },
+  { label:'+6',   db: 6,  color:'orange' },
+  { label:'CLIP', db: 0,  color:'red', clip:true },
+];
+
+const ROW_DEFS = [
+  { band:'full', ch:0, name:'FULL', side:'L', sub:false },
+  { band:'full', ch:1, name:'FULL', side:'R', sub:false },
+  { band:'sub',  ch:0, name:'SUB',  side:'L', sub:true  },
+  { band:'sub',  ch:1, name:'SUB',  side:'R', sub:true  },
+];
+
+const gainState      = { full: [0.5, 0.5], sub: [0.5, 0.5] };
+const limitState     = { full: [100, 100], sub: [100, 100] };
+const smoothKnobGain = { full: [1, 1],     sub: [1, 1]      };
+const limiterGain    = { full: [1, 1],     sub: [1, 1]      };
+
+let sensValue  = 0.5;
+let sensOffset = 0;
+
+let refreshMode       = 'realtime';
+let lastDisplayUpdate = 0;
+
+let totalOutSmooth = 0;
+let totalConSmooth = 0;
+
+let lastLoadUpdate  = 0;
+let totalLoadSmooth = 0;
+
+/* =========================================================
+   5. 市电三相状态
+   ========================================================= */
+const mainsPhases = [
+  { name:'L1', volt: MAINS_NOMINAL, loadBias: 1.00 },
+  { name:'L2', volt: MAINS_NOMINAL, loadBias: 0.97 },
+  { name:'L3', volt: MAINS_NOMINAL, loadBias: 1.03 },
+];
+const mainsAmps = [0, 0, 0];
+
+/* ★ 修复：dt 可能为负数，导致 Math.sqrt(负) = NaN，电压永久损坏
+   现在做三重防护：
+   1. 钳制 dt 非负
+   2. 计算前检查 stepScale 是否有限
+   3. 每个相位写入后校验 volt，无效则恢复标称值
+*/
+function stepMainsVoltage(dt) {
+  if (!isFinite(dt) || dt <= 0) {
+    /* 非法 dt：跳过本次物理更新，但仍做一次数值健康检查 */
+    for (const p of mainsPhases) {
+      if (!isFinite(p.volt)) p.volt = MAINS_NOMINAL;
+    }
+    return;
+  }
+
+  const stepScale = Math.sqrt(dt / 16.7);
+  if (!isFinite(stepScale)) {
+    for (const p of mainsPhases) {
+      if (!isFinite(p.volt)) p.volt = MAINS_NOMINAL;
+    }
+    return;
+  }
+
+  for (const p of mainsPhases) {
+    p.volt += (Math.random() - 0.5) * 0.22 * stepScale;
+    p.volt += (MAINS_NOMINAL - p.volt) * 0.0018 * stepScale;
+
+    /* 数值健全性检查：任何非有限值都立即恢复 */
+    if (!isFinite(p.volt)) {
+      p.volt = MAINS_NOMINAL + (Math.random() - 0.5) * 2;
+      continue;
+    }
+
+    if (p.volt < MAINS_MIN) p.volt = MAINS_MIN + Math.random() * 0.6;
+    if (p.volt > MAINS_MAX) p.volt = MAINS_MAX - Math.random() * 0.6;
+  }
+}
+
+/* =========================================================
+   6. 增益 / dB 转换
+   ========================================================= */
+function knobToDb(v) {
+  if (v <= 0.5) return -40 + (v / 0.5) * 40;
+  else          return ((v - 0.5) / 0.5) * 10;
+}
+function dbToKnob(dB) {
+  dB = Math.max(-40, Math.min(10, dB));
+  if (dB <= 0) return ((dB + 40) / 40) * 0.5;
+  else         return 0.5 + (dB / 10) * 0.5;
+}
+function knobToGain(v) { return Math.pow(10, knobToDb(v) / 20); }
+function fmtDb(dB) {
+  if (Math.abs(dB) < 0.05) dB = 0;
+  return (dB >= 0 ? '+' : '') + dB.toFixed(1);
+}
+
+/* =========================================================
+   7. 构建刻度 / 表头 / 功率卡片
+   ========================================================= */
+const scaleMarksEl = document.getElementById('scaleMarks');
+SCALE.forEach(s => {
+  const sp = document.createElement('span');
+  sp.textContent = s.label;
+  scaleMarksEl.append(sp);
+});
+
+const rowsEl     = document.getElementById('rows');
+const powerPanel = document.getElementById('powerPanel');
+const rows       = [];
+const powerCards = [];
+
+ROW_DEFS.forEach((def, i) => {
+  const rowEl = document.createElement('div');
+  rowEl.className = 'ch-row grid3';
+
+  const label = document.createElement('div');
+  label.className = 'ch-label' + (def.sub ? ' sub' : '');
+  label.innerHTML = `<span class="band">${def.name}</span><span class="side">${def.side}</span>`;
+
+  const ledsEl = document.createElement('div');
+  ledsEl.className = 'leds';
+  const leds = SCALE.map(s => {
+    const led = document.createElement('div');
+    led.className = 'led';
+    led.dataset.c = s.color;
+    ledsEl.append(led);
+    return { el: led, db: s.db, clip: !!s.clip, on: false };
+  });
+
+  const dbEl = document.createElement('div');
+  dbEl.className = 'ch-db';
+  dbEl.textContent = '−∞';
+
+  rowEl.append(label, ledsEl, dbEl);
+  rowsEl.append(rowEl);
+
+  if (i === 1) {
+    const sep = document.createElement('div');
+    sep.className = 'sep';
+    rowsEl.append(sep);
+  }
+
+  const row = {
+    def, leds, dbEl,
+    db: -100,
+    clipUntil: 0,
+    powerSmooth: 0,
+    preset: SPEAKER_PRESETS[def.band][3],
+    peakAccum: 0,
+  };
+  rows.push(row);
+
+  const card = document.createElement('div');
+  card.className = 'power-card';
+
+  const nameEl = document.createElement('div');
+  nameEl.className = 'pc-name' + (def.sub ? ' sub' : '');
+  nameEl.textContent = (def.sub ? '超低' : '全频') + ' ' + def.side;
+
+  const valueEl = document.createElement('div');
+  valueEl.className = 'pc-value';
+  valueEl.innerHTML = '0.0<small>W</small>';
+
+  const barEl = document.createElement('div');
+  barEl.className = 'pc-bar';
+  const fillEl = document.createElement('div');
+  fillEl.className = 'pc-fill';
+  barEl.append(fillEl);
+
+  const selectEl = document.createElement('select');
+  selectEl.className = 'pc-select';
+  SPEAKER_PRESETS[def.band].forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.custom ? p.label : `${p.label} · ${p.maxW}W`;
+    selectEl.append(opt);
+  });
+  selectEl.value = row.preset.id;
+
+  const customEl = document.createElement('input');
+  customEl.className = 'pc-custom';
+  customEl.type = 'number';
+  customEl.min = 1;
+  customEl.step = 1;
+  customEl.placeholder = '最大功率 W';
+  customEl.value = row.preset.maxW;
+
+  const splEl = document.createElement('div');
+  splEl.className = 'pc-spl';
+
+  const spl1mCell = document.createElement('div');
+  spl1mCell.className = 'spl-cell';
+  spl1mCell.innerHTML = '<span class="spl-label">1m</span><span class="spl-val">—</span>';
+
+  const splFrontCell = document.createElement('div');
+  splFrontCell.className = 'spl-cell';
+  splFrontCell.innerHTML = '<span class="spl-label">—</span><span class="spl-val">—</span>';
+
+  const splBackCell = document.createElement('div');
+  splBackCell.className = 'spl-cell';
+  splBackCell.innerHTML = '<span class="spl-label">—</span><span class="spl-val">—</span>';
+
+  splEl.append(spl1mCell, splFrontCell, splBackCell);
+
+  function refreshSplLabels() {
+    const p = row.preset;
+    if (p.custom) { splEl.classList.add('hidden'); return; }
+    splEl.classList.remove('hidden');
+    spl1mCell.querySelector('.spl-label').textContent = '1m';
+    splFrontCell.querySelector('.spl-label').textContent = `${p.distFront}m`;
+    splBackCell.querySelector('.spl-label').textContent = `${p.distBack}m`;
+  }
+  refreshSplLabels();
+
+  function syncCustomVisibility() {
+    customEl.classList.toggle('show', !!row.preset.custom);
+    refreshSplLabels();
+  }
+  syncCustomVisibility();
+
+  selectEl.addEventListener('change', () => {
+    const found = SPEAKER_PRESETS[def.band].find(p => p.id === selectEl.value);
+    if (found) {
+      if (found.custom) {
+        row.preset = { ...found, maxW: parseFloat(customEl.value) || found.maxW };
+      } else {
+        row.preset = found;
+      }
+      row.powerSmooth = 0;
+      syncCustomVisibility();
+      selectEl.blur();
+    }
+  });
+
+  customEl.addEventListener('input', () => {
+    const v = parseFloat(customEl.value);
+    if (isFinite(v) && v > 0) { row.preset.maxW = v; row.powerSmooth = 0; }
+  });
+
+  const footEl = document.createElement('div');
+  footEl.className = 'pc-foot';
+
+  const pctEl = document.createElement('span');
+  pctEl.className = 'pc-pct';
+  pctEl.textContent = '0.0%';
+
+  const limWrap = document.createElement('span');
+  limWrap.className = 'pc-lim';
+  limWrap.append(document.createTextNode('限'));
+
+  const limInput = document.createElement('input');
+  limInput.type = 'number';
+  limInput.min = 0;
+  limInput.max = MAX_LIMIT_PCT;
+  limInput.step = 1;
+  limInput.value = limitState[def.band][def.ch];
+
+  function syncLimWarn() {
+    const v = parseFloat(limInput.value);
+    limInput.classList.toggle('warn', isFinite(v) && v > 100);
+  }
+  syncLimWarn();
+
+  limInput.addEventListener('input', () => {
+    let v = parseFloat(limInput.value);
+    if (!isFinite(v)) return;
+    v = Math.max(0, Math.min(MAX_LIMIT_PCT, v));
+    limitState[def.band][def.ch] = v;
+    syncLimWarn();
+  });
+  limInput.addEventListener('blur', () => {
+    let v = parseFloat(limInput.value);
+    if (!isFinite(v)) v = 100;
+    v = Math.max(0, Math.min(MAX_LIMIT_PCT, v));
+    limitState[def.band][def.ch] = v;
+    limInput.value = v;
+    syncLimWarn();
+  });
+  limInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); limInput.blur(); }
+  });
+
+  limWrap.append(limInput);
+  limWrap.append(document.createTextNode('%'));
+  footEl.append(pctEl, limWrap);
+
+  card.append(nameEl, valueEl, barEl, selectEl, customEl, footEl, splEl);
+  powerPanel.append(card);
+
+  powerCards.push({
+    def, row,
+    valueEl, fillEl, pctEl, limInput,
+    splEl, spl1mCell, splFrontCell, splBackCell,
+    refreshSplLabels,
+  });
+});
+
+/* =========================================================
+   8. 旋钮组件
+   ========================================================= */
+function createKnob(container, opts) {
+  const { label, sublabel, initial = 0.5, accent = false, onChange } = opts;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'knob-item' + (accent ? ' sens' : '');
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.classList.add('knob-svg');
+
+  const outer = document.createElementNS(svgNS, 'circle');
+  outer.setAttribute('cx', 50); outer.setAttribute('cy', 50);
+  outer.setAttribute('r', 44);
+  outer.setAttribute('fill', 'url(#ringGrad)');
+  outer.setAttribute('stroke', 'rgba(0,0,0,.3)');
+  outer.setAttribute('stroke-width', '1');
+  svg.append(outer);
+
+  for (let i = 0; i < 11; i++) {
+    const t = i / 10;
+    const angle = -135 + 270 * t;
+    const rad = (90 - angle) * Math.PI / 180;
+    const r1 = 36, r2 = 41.5;
+    const line = document.createElementNS(svgNS, 'line');
+    line.setAttribute('x1', 50 + r1 * Math.cos(rad));
+    line.setAttribute('y1', 50 - r1 * Math.sin(rad));
+    line.setAttribute('x2', 50 + r2 * Math.cos(rad));
+    line.setAttribute('y2', 50 - r2 * Math.sin(rad));
+    line.setAttribute('class', 'knob-tick' +
+      (i === 0 || i === 5 || i === 10 ? ' major' : ''));
+    svg.append(line);
+  }
+
+  const rotor = document.createElementNS(svgNS, 'g');
+  const body = document.createElementNS(svgNS, 'circle');
+  body.setAttribute('cx', 50); body.setAttribute('cy', 50);
+  body.setAttribute('r', 29);
+  body.setAttribute('class', 'knob-body');
+  rotor.append(body);
+
+  const ind = document.createElementNS(svgNS, 'line');
+  ind.setAttribute('x1', 50); ind.setAttribute('y1', 24);
+  ind.setAttribute('x2', 50); ind.setAttribute('y2', 41);
+  ind.setAttribute('class', 'knob-indicator');
+  rotor.append(ind);
+  svg.append(rotor);
+
+  const cap = document.createElementNS(svgNS, 'circle');
+  cap.setAttribute('cx', 50); cap.setAttribute('cy', 50);
+  cap.setAttribute('r', 9);
+  cap.setAttribute('class', 'knob-cap');
+  svg.append(cap);
+
+  wrap.append(svg);
+
+  const labelEl = document.createElement('div');
+  labelEl.className = 'knob-label';
+  labelEl.innerHTML = `<span class="knob-name">${label}</span>` +
+    (sublabel ? `<span class="knob-sub">${sublabel}</span>` : '');
+  wrap.append(labelEl);
+
+  const valueInput = document.createElement('input');
+  valueInput.className = 'knob-input';
+  valueInput.type = 'text';
+  valueInput.inputMode = 'decimal';
+  valueInput.autocomplete = 'off';
+  valueInput.spellcheck = false;
+  wrap.append(valueInput);
+
+  container.append(wrap);
+
+  let value = initial;
+
+  function render() {
+    const angle = -135 + 270 * value;
+    rotor.setAttribute('transform', `rotate(${angle}, 50, 50)`);
+    if (document.activeElement !== valueInput) {
+      valueInput.value = fmtDb(knobToDb(value));
+    }
+  }
+  render();
+
+  function parseInput(s) {
+    if (typeof s !== 'string') return null;
+    s = s.trim().replace(/db/gi, '').trim();
+    if (!s) return null;
+    const v = parseFloat(s);
+    if (!isFinite(v)) return null;
+    return Math.max(-40, Math.min(10, v));
+  }
+
+  valueInput.addEventListener('blur', () => {
+    const dB = parseInput(valueInput.value);
+    if (dB === null) { render(); return; }
+    const newVal = dbToKnob(dB);
+    const changed = Math.abs(newVal - value) > 1e-6;
+    value = newVal;
+    render();
+    valueInput.value = fmtDb(knobToDb(value));
+    if (changed) onChange(value);
+  });
+
+  valueInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); valueInput.blur(); }
+    else if (e.key === 'Escape') { e.preventDefault(); render(); valueInput.blur(); }
+  });
+
+  let dragging = false;
+  let lastAngle = 0;
+
+  function getAngle(e) {
+    const r = svg.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    return Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI;
+  }
+
+  svg.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    svg.setPointerCapture(e.pointerId);
+    dragging = true;
+    lastAngle = getAngle(e);
+    svg.classList.add('dragging');
+  });
+
+  svg.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const a = getAngle(e);
+    let d = a - lastAngle;
+    if (d > 180) d -= 360;
+    if (d < -180) d += 360;
+    lastAngle = a;
+    value = Math.max(0, Math.min(1, value + d / 270));
+    render();
+    onChange(value);
+  });
+
+  function endDrag(e) {
+    if (!dragging) return;
+    dragging = false;
+    svg.classList.remove('dragging');
+    try { svg.releasePointerCapture(e.pointerId); } catch (_) {}
+  }
+  svg.addEventListener('pointerup', endDrag);
+  svg.addEventListener('pointercancel', endDrag);
+
+  svg.addEventListener('wheel', e => {
+    e.preventDefault();
+    const d = e.deltaY > 0 ? -1 : 1;
+    value = Math.max(0, Math.min(1, value + d * 0.025));
+    render();
+    onChange(value);
+  }, { passive: false });
+
+  svg.addEventListener('dblclick', e => {
+    e.preventDefault();
+    value = 0.5;
+    render();
+    onChange(value);
+  });
+}
+
+const knobsRow = document.getElementById('knobsRow');
+
+ROW_DEFS.forEach(def => {
+  const isFull = def.band === 'full';
+  createKnob(knobsRow, {
+    label: (isFull ? '全频' : '超低') + ' ' + def.side,
+    sublabel: def.band.toUpperCase() + ' ' + def.side,
+    initial: gainState[def.band][def.ch],
+    onChange: v => { gainState[def.band][def.ch] = v; },
+  });
+});
+
+const divider = document.createElement('div');
+divider.className = 'knob-divider';
+knobsRow.append(divider);
+
+createKnob(knobsRow, {
+  label: '灵敏度',
+  sublabel: 'METER SENS',
+  initial: 0.5,
+  accent: true,
+  onChange: v => {
+    sensValue  = v;
+    sensOffset = 12 - 24 * v;
+  },
+});
+
+/* =========================================================
+   9. 系统面板交互
+   ========================================================= */
+const refreshSelect = document.getElementById('refreshSelect');
+refreshSelect.addEventListener('change', () => {
+  if (REFRESH_MODES[refreshSelect.value]) {
+    refreshMode = refreshSelect.value;
+    lastDisplayUpdate = 0;
+    for (const row of rows) row.peakAccum = 0;
+  }
+  refreshSelect.blur();
+});
+
+const crossoverSelect = document.getElementById('crossoverSelect');
+const crossoverCustom = document.getElementById('crossoverCustom');
+crossoverCustom.value = crossoverFreq;
+
+crossoverSelect.addEventListener('change', () => {
+  if (crossoverSelect.value === 'custom') {
+    crossoverCustom.classList.add('show');
+    crossoverCustom.focus();
+    crossoverCustom.select();
+  } else {
+    crossoverCustom.classList.remove('show');
+    setCrossoverFrequency(parseFloat(crossoverSelect.value));
+  }
+  crossoverSelect.blur();
+});
+
+crossoverCustom.addEventListener('input', () => {
+  const v = parseFloat(crossoverCustom.value);
+  if (isFinite(v) && v >= 20 && v <= 1000) setCrossoverFrequency(v);
+});
+crossoverCustom.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); crossoverCustom.blur(); }
+});
+
+const ampClassSelect = document.getElementById('ampClassSelect');
+ampClassSelect.addEventListener('change', () => {
+  if (AMP_CLASSES[ampClassSelect.value]) ampClass = ampClassSelect.value;
+  ampClassSelect.blur();
+});
+
+/* =========================================================
+   10. 市电三相 DOM 构建
+   ========================================================= */
+const mainsCellsEl = document.getElementById('mainsCells');
+const mainsCells = [];
+
+for (let i = 0; i < 3; i++) {
+  const cell = document.createElement('div');
+  cell.className = 'mains-cell';
+
+  const phaseEl = document.createElement('div');
+  phaseEl.className = 'mc-phase';
+  phaseEl.textContent = mainsPhases[i].name;
+
+  const valuesEl = document.createElement('div');
+  valuesEl.className = 'mc-values';
+
+  const voltEl = document.createElement('span');
+  voltEl.className = 'mc-volt';
+  voltEl.innerHTML = '—<small>V</small>';
+
+  const ampEl = document.createElement('span');
+  ampEl.className = 'mc-amp';
+  ampEl.innerHTML = '—<small>A</small>';
+
+  valuesEl.append(voltEl, ampEl);
+  cell.append(phaseEl, valuesEl);
+  mainsCellsEl.append(cell);
+
+  mainsCells.push({ voltEl, ampEl });
+}
+
+/* =========================================================
+   11. 音频图
+   ========================================================= */
+const audio   = new Audio();
+audio.preload = 'auto';
+
+let ctx       = null;
+let analysers = null;
+let buffers   = null;
+let gainNodes = null;
+let crossoverFilters = [];
+
+function setCrossoverFrequency(freq) {
+  freq = Math.max(20, Math.min(1000, freq));
+  crossoverFreq = freq;
+  if (ctx && crossoverFilters.length > 0) {
+    const t = ctx.currentTime;
+    for (const filt of crossoverFilters) {
+      for (const f of filt.hp) f.frequency.setTargetAtTime(freq, t, 0.03);
+      for (const f of filt.lp) f.frequency.setTargetAtTime(freq, t, 0.03);
+    }
+  }
+}
+
+function ensureAudio() {
+  if (!ctx) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const src      = ctx.createMediaElementSource(audio);
+    const splitter = ctx.createChannelSplitter(2);
+    const merger   = ctx.createChannelMerger(2);
+
+    src.connect(splitter);
+
+    analysers = [];
+    buffers   = [];
+    gainNodes = [];
+    crossoverFilters = [];
+
+    for (let ch = 0; ch < 2; ch++) {
+      const hp1 = ctx.createBiquadFilter();
+      hp1.type = 'highpass'; hp1.frequency.value = crossoverFreq; hp1.Q.value = 0.707;
+      const hp2 = ctx.createBiquadFilter();
+      hp2.type = 'highpass'; hp2.frequency.value = crossoverFreq; hp2.Q.value = 0.707;
+
+      const aFull = ctx.createAnalyser();
+      aFull.fftSize = 2048; aFull.smoothingTimeConstant = 0;
+
+      const gFull = ctx.createGain();
+      gFull.gain.value = knobToGain(gainState.full[ch]);
+
+      splitter.connect(hp1, ch);
+      hp1.connect(hp2);
+      hp2.connect(aFull);
+      aFull.connect(gFull);
+      gFull.connect(merger, 0, ch);
+
+      const lp1 = ctx.createBiquadFilter();
+      lp1.type = 'lowpass'; lp1.frequency.value = crossoverFreq; lp1.Q.value = 0.707;
+      const lp2 = ctx.createBiquadFilter();
+      lp2.type = 'lowpass'; lp2.frequency.value = crossoverFreq; lp2.Q.value = 0.707;
+
+      const aSub = ctx.createAnalyser();
+      aSub.fftSize = 2048; aSub.smoothingTimeConstant = 0;
+
+      const gSub = ctx.createGain();
+      gSub.gain.value = knobToGain(gainState.sub[ch]);
+
+      splitter.connect(lp1, ch);
+      lp1.connect(lp2);
+      lp2.connect(aSub);
+      aSub.connect(gSub);
+      gSub.connect(merger, 0, ch);
+
+      analysers.push({ full: aFull, sub: aSub });
+      buffers.push({
+        full: new Float32Array(aFull.fftSize),
+        sub:  new Float32Array(aSub.fftSize),
+      });
+      gainNodes.push({ full: gFull, sub: gSub });
+      crossoverFilters.push({ hp: [hp1, hp2], lp: [lp1, lp2] });
+    }
+
+    merger.connect(ctx.destination);
+  }
+  if (ctx.state === 'suspended') ctx.resume();
+}
+
+/* =========================================================
+   12. 播放控制
+   ========================================================= */
+const fileInput = document.getElementById('fileInput');
+const playBtn   = document.getElementById('playBtn');
+const timeEl    = document.getElementById('timeEl');
+const fnameEl   = document.getElementById('fnameEl');
+
+let objectUrl = null;
+
+fileInput.addEventListener('change', () => {
+  const f = fileInput.files[0];
+  if (!f) return;
+  ensureAudio();
+  if (objectUrl) URL.revokeObjectURL(objectUrl);
+  objectUrl = URL.createObjectURL(f);
+  audio.src = objectUrl;
+  fnameEl.textContent = f.name;
+  playBtn.disabled = false;
+  audio.play().catch(() => {});
+});
+
+playBtn.addEventListener('click', () => {
+  ensureAudio();
+  if (audio.paused) audio.play().catch(() => {});
+  else              audio.pause();
+});
+
+audio.addEventListener('play',  () => playBtn.textContent = '暂停');
+audio.addEventListener('pause', () => playBtn.textContent = '播放');
+audio.addEventListener('ended', () => playBtn.textContent = '播放');
+
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space' && !playBtn.disabled && e.target === document.body) {
+    e.preventDefault();
+    playBtn.click();
+  }
+});
+
+/* =========================================================
+   13. 系统读数 DOM
+   ========================================================= */
+const totalOutVal   = document.getElementById('totalOutVal');
+const totalConVal   = document.getElementById('totalConVal');
+const effVal        = document.getElementById('effVal');
+const effFill       = document.getElementById('effFill');
+const totalLoadVal  = document.getElementById('totalLoadVal');
+const totalLoadFill = document.getElementById('totalLoadFill');
+
+function formatWatt(v) {
+  if (v < 0.05) return { text: '0.0', unit: 'W' };
+  if (v < 10)   return { text: v.toFixed(2), unit: 'W' };
+  if (v < 1000) return { text: v.toFixed(v < 100 ? 1 : 0), unit: 'W' };
+  return { text: (v / 1000).toFixed(2), unit: 'kW' };
+}
+
+/* =========================================================
+   14. 响度栏更新
+   ========================================================= */
+function calcSPL(powerW, sens, distance) {
+  if (powerW < 0.01 || !sens) return null;
+  return sens + 10 * Math.log10(powerW) - 20 * Math.log10(distance);
+}
+
+function updateSplCell(cell, powerW, sens, distance) {
+  const valEl = cell.querySelector('.spl-val');
+  const spl = calcSPL(powerW, sens, distance);
+  if (spl === null) {
+    if (valEl.dataset.v !== 'idle') {
+      valEl.dataset.v = 'idle';
+      valEl.innerHTML = '—';
+      cell.classList.remove('loud', 'danger');
+    }
+    return;
+  }
+
+  const text = spl.toFixed(0);
+  if (valEl.dataset.v !== text) {
+    valEl.dataset.v = text;
+    valEl.innerHTML = text + '<small>dB</small>';
+  }
+
+  if (spl >= 112)      cell.className = 'spl-cell danger';
+  else if (spl >= 105) cell.className = 'spl-cell loud';
+  else                 cell.className = 'spl-cell';
+}
+
+/* =========================================================
+   15. 市电三相更新
+   ========================================================= */
+function updateMainsDisplay(totalConW, dt) {
+  const perPhaseW = totalConW / 3;
+  const k = 1 - Math.exp(-Math.max(0, dt) / 150);
+
+  for (let i = 0; i < 3; i++) {
+    const p = mainsPhases[i];
+    const cell = mainsCells[i];
+
+    /* ★ 保险：相位电压无效时立刻恢复，避免把 NaN 写进 DOM */
+    if (!isFinite(p.volt)) p.volt = MAINS_NOMINAL;
+
+    const targetAmp = (perPhaseW * p.loadBias) / (p.volt * MAINS_PF);
+    if (isFinite(targetAmp)) {
+      mainsAmps[i] += (targetAmp - mainsAmps[i]) * k;
+      if (!isFinite(mainsAmps[i])) mainsAmps[i] = 0;
+    }
+
+    const voltText = p.volt.toFixed(1);
+    if (cell.voltEl.dataset.v !== voltText) {
+      cell.voltEl.dataset.v = voltText;
+      cell.voltEl.innerHTML = voltText + '<small>V</small>';
+    }
+
+    let vCls = '';
+    if (p.volt < 224)      vCls = 'warn';
+    else if (p.volt > 250) vCls = 'hot';
+    cell.voltEl.className = 'mc-volt' + (vCls ? ' ' + vCls : '');
+
+    const a = mainsAmps[i];
+    let ampText;
+    if (a < 0.005)     ampText = '0.00';
+    else if (a < 1)    ampText = a.toFixed(3);
+    else if (a < 10)   ampText = a.toFixed(2);
+    else               ampText = a.toFixed(1);
+
+    if (cell.ampEl.dataset.v !== ampText) {
+      cell.ampEl.dataset.v = ampText;
+      cell.ampEl.innerHTML = ampText + '<small>A</small>';
+    }
+  }
+}
+
+/* =========================================================
+   16. 整体负载更新
+   ========================================================= */
+function updateTotalLoad(now) {
+  if (now - lastLoadUpdate < LOAD_REFRESH_MS) return;
+
+  const loadDt = lastLoadUpdate === 0
+    ? 16
+    : Math.max(0, Math.min(now - lastLoadUpdate, 200));
+  lastLoadUpdate = now;
+
+  const loads = rows.map(r => (r.powerSmooth / r.preset.maxW) * 100);
+  const maxLoad = Math.max(...loads);
+  const avgLoad = loads.reduce((a, b) => a + b, 0) / loads.length;
+  const rawLoad = maxLoad * 0.55 + avgLoad * 0.45;
+
+  const k = 1 - Math.exp(-loadDt / 180);
+  totalLoadSmooth += (rawLoad - totalLoadSmooth) * k;
+
+  const text = totalLoadSmooth.toFixed(1);
+  if (totalLoadVal.dataset.v !== text) {
+    totalLoadVal.dataset.v = text;
+    totalLoadVal.innerHTML = text + '<small>%</small>';
+  }
+
+  const over = totalLoadSmooth > 100;
+  let cls;
+  if (over)                          cls = 'clip';
+  else if (totalLoadSmooth > 85)     cls = 'hot';
+  else if (totalLoadSmooth > 70)     cls = 'warn';
+  else                               cls = '';
+  totalLoadVal.className = 'sys-value' + (cls ? ' ' + cls : '');
+
+  let barCls;
+  if (over)                      barCls = 'clip';
+  else if (totalLoadSmooth > 85) barCls = 'hot';
+  else if (totalLoadSmooth > 70) barCls = 'warn';
+  else                           barCls = '';
+  totalLoadFill.className = 'sys-fill' + (barCls ? ' ' + barCls : '');
+  totalLoadFill.style.width = Math.min(totalLoadSmooth, 100).toFixed(1) + '%';
+}
+
+/* =========================================================
+   17. 能量统计
+   ========================================================= */
+const powerHistory    = new Float32Array(ENERGY_HISTORY);
+let historyHead       = 0;
+let historyCount      = 0;
+let historyLastSample = performance.now();
+
+let totalEnergyKWh = 0;
+let totalSum       = 0;
+let totalCount     = 0;
+let energyStartTime = performance.now();
+
+let lastEnergyDisplay = 0;
+
+const energyKWhEl     = document.getElementById('energyKWh');
+const energyRuntimeEl = document.getElementById('energyRuntime');
+const avgValueEl      = document.getElementById('avgValue');
+const avgUnitEl       = document.getElementById('avgUnit');
+const avgSelect       = document.getElementById('avgSelect');
+const resetEnergyBtn  = document.getElementById('resetEnergyBtn');
+
+function pushSample(v) {
+  if (!isFinite(v)) v = 0;
+  powerHistory[historyHead] = v;
+  historyHead = (historyHead + 1) % ENERGY_HISTORY;
+  if (historyCount < ENERGY_HISTORY) historyCount++;
+}
+
+function avgRecent(n) {
+  const cnt = Math.min(n, historyCount);
+  if (cnt === 0) return null;
+  let sum = 0;
+  for (let i = 0; i < cnt; i++) {
+    const idx = (historyHead - 1 - i + ENERGY_HISTORY * 2) % ENERGY_HISTORY;
+    sum += powerHistory[idx];
+  }
+  return sum / cnt;
+}
+
+function resetEnergy() {
+  totalEnergyKWh = 0;
+  totalSum = 0;
+  totalCount = 0;
+  historyHead = 0;
+  historyCount = 0;
+  historyLastSample = performance.now();
+  energyStartTime = performance.now();
+  lastEnergyDisplay = 0;
+}
+
+function updateEnergy(now, dtMs) {
+  if (!isFinite(dtMs) || dtMs <= 0) dtMs = 0;
+  totalEnergyKWh += totalConSmooth * (dtMs / 1000) / 3600000;
+
+  /* 采样循环：防止 now 异常时进入死循环 */
+  let guard = 0;
+  while (now - historyLastSample >= ENERGY_SAMPLE_MS && guard < 100) {
+    historyLastSample += ENERGY_SAMPLE_MS;
+    pushSample(totalConSmooth);
+    totalSum += totalConSmooth;
+    totalCount++;
+    guard++;
+  }
+  /* 若积压过多，直接对齐当前时间，避免永远追赶 */
+  if (guard >= 100) historyLastSample = now;
+}
+
+function fmtEnergy(kwh) {
+  if (!isFinite(kwh) || kwh < 0) return '0.000';
+  if (kwh < 0.001) return '0.000';
+  if (kwh < 1)     return kwh.toFixed(3);
+  if (kwh < 100)   return kwh.toFixed(2);
+  return Math.round(kwh).toString();
+}
+
+function fmtRuntime(ms) {
+  if (!isFinite(ms) || ms < 0) ms = 0;
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  return String(h).padStart(2, '0') + ':' +
+         String(m).padStart(2, '0') + ':' +
+         String(s).padStart(2, '0');
+}
+
+function getSelectedAvg() {
+  switch (avgSelect.value) {
+    case '10m': return avgRecent(2400);
+    case '5m':  return avgRecent(1200);
+    case '30s': return avgRecent(120);
+    case '5s':  return avgRecent(20);
+    case 'since':
+    default:    return totalCount > 0 ? totalSum / totalCount : null;
+  }
+}
+
+function updateEnergyDisplay(now) {
+  const kwhText = fmtEnergy(totalEnergyKWh);
+  if (energyKWhEl.dataset.v !== kwhText) {
+    energyKWhEl.dataset.v = kwhText;
+    energyKWhEl.textContent = kwhText;
+  }
+
+  const rtText = fmtRuntime(now - energyStartTime);
+  if (energyRuntimeEl.dataset.v !== rtText) {
+    energyRuntimeEl.dataset.v = rtText;
+    energyRuntimeEl.textContent = rtText;
+  }
+
+  const val = getSelectedAvg();
+  if (val == null || !isFinite(val)) {
+    if (avgValueEl.dataset.v !== 'idle') {
+      avgValueEl.dataset.v = 'idle';
+      avgValueEl.textContent = '—';
+      avgUnitEl.textContent = '';
+    }
+    return;
+  }
+
+  let numText, unitText;
+  if (val < 1) {
+    numText = val.toFixed(1);
+    unitText = 'W';
+  } else if (val < 1000) {
+    numText = Math.round(val).toString();
+    unitText = 'W';
+  } else {
+    numText = (val / 1000).toFixed(2);
+    unitText = 'kW';
+  }
+
+  const tag = numText + '|' + unitText;
+  if (avgValueEl.dataset.v !== tag) {
+    avgValueEl.dataset.v = tag;
+    avgValueEl.textContent = numText;
+    avgUnitEl.textContent = unitText;
+  }
+}
+
+avgSelect.addEventListener('change', () => {
+  lastEnergyDisplay = 0;
+  avgSelect.blur();
+});
+
+resetEnergyBtn.addEventListener('click', () => {
+  resetEnergy();
+  resetEnergyBtn.classList.remove('flash');
+  void resetEnergyBtn.offsetWidth;
+  resetEnergyBtn.classList.add('flash');
+});
+
+/* =========================================================
+   18. 主循环
+   ========================================================= */
+let lastT = null;   // ★ 改为 null，第一次进入时用 now 初始化
+
+function fmtTime(t) {
+  if (!isFinite(t) || t < 0) return '--:--';
+  const m = Math.floor(t / 60);
+  const s = Math.floor(t % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function readPeak(analyser, buf) {
+  analyser.getFloatTimeDomainData(buf);
+  let p = 0;
+  for (let i = 0; i < buf.length; i++) {
+    const v = buf[i] < 0 ? -buf[i] : buf[i];
+    if (v > p) p = v;
+  }
+  return p;
+}
+
+function frame(now) {
+  requestAnimationFrame(frame);
+
+  /* ★ 修复：dt 钳制到非负，防止 rAF 时间戳回退时出现负值 */
+  if (lastT === null) lastT = now;
+  const dt = Math.max(0, Math.min(now - lastT, 100));
+  lastT = now;
+
+  const running = ctx && ctx.state === 'running';
+  const intervalMs = REFRESH_MODES[refreshMode].intervalMs;
+  const doDisplay  = intervalMs === 0 || (now - lastDisplayUpdate >= intervalMs);
+
+  let displayDt = 0;
+  if (doDisplay) {
+    /* ★ 修复：displayDt 也钳制到非负 */
+    displayDt = lastDisplayUpdate === 0
+      ? 16
+      : Math.max(0, Math.min(now - lastDisplayUpdate, 300));
+    lastDisplayUpdate = now;
+  }
+
+  stepMainsVoltage(dt);
+
+  for (const row of rows) {
+    const { band, ch } = row.def;
+
+    let rawPeak = 0;
+    if (running) rawPeak = readPeak(analysers[ch][band], buffers[ch][band]);
+
+    const targetKnob = knobToGain(gainState[band][ch]);
+    const knobK = 1 - Math.exp(-dt / 20);
+    smoothKnobGain[band][ch] += (targetKnob - smoothKnobGain[band][ch]) * knobK;
+    const knobGain = smoothKnobGain[band][ch];
+
+    const maxW       = row.preset.maxW;
+    const limitPct   = limitState[band][ch];
+    const limitPower = maxW * (limitPct / 100);
+
+    const demandPeak  = rawPeak * knobGain;
+    const demandPower = maxW * demandPeak * demandPeak;
+
+    let targetLim = 1;
+    if (demandPower > limitPower && rawPeak > 1e-9 && knobGain > 1e-9) {
+      const neededOutPeak   = Math.sqrt(limitPower / maxW);
+      const neededTotalGain = neededOutPeak / rawPeak;
+      targetLim = Math.max(0, Math.min(1, neededTotalGain / knobGain));
+    }
+
+    const attacking = targetLim < limiterGain[band][ch];
+    const tauMs = attacking ? 5 : 250;
+    const limK  = 1 - Math.exp(-dt / tauMs);
+    limiterGain[band][ch] += (targetLim - limiterGain[band][ch]) * limK;
+
+    const totalGain = knobGain * limiterGain[band][ch];
+    if (gainNodes[ch] && gainNodes[ch][band]) {
+      gainNodes[ch][band].gain.value = totalGain;
+    }
+
+    const rawOutPeak = rawPeak * totalGain;
+
+    if (rawOutPeak >= CLIP_LEVEL) row.clipUntil = now + CLIP_HOLD;
+
+    if (doDisplay) {
+      const displayPeak = Math.max(rawOutPeak, row.peakAccum);
+      row.peakAccum = 0;
+
+      const outPeak = Math.min(displayPeak, 1.0);
+      const dbfs    = 20 * Math.log10(outPeak + 1e-12);
+
+      const ref     = BASE_REF[band] + sensOffset;
+      const meterDb = dbfs - ref;
+
+      if (meterDb >= row.db) {
+        row.db = meterDb;
+      } else {
+        const k = 1 - Math.exp(-displayDt / RELEASE_MS);
+        row.db += (meterDb - row.db) * k;
+      }
+      if (row.db < -70) row.db = -70;
+
+      const clipOn = now < row.clipUntil;
+
+      for (const led of row.leds) {
+        const on = led.clip ? clipOn : (row.db >= led.db);
+        if (on !== led.on) {
+          led.on = on;
+          led.el.classList.toggle('on', on);
+        }
+      }
+
+      let txt;
+      if (row.db <= -59.95) txt = '−∞';
+      else txt = (row.db >= 0 ? '+' : '−') + Math.abs(row.db).toFixed(1);
+      if (row.dbEl.textContent !== txt) row.dbEl.textContent = txt;
+      row.dbEl.classList.toggle('hot',  row.db >= 0 && !clipOn);
+      row.dbEl.classList.toggle('clip', clipOn);
+
+      const pFactor  = Math.min(displayPeak * displayPeak, 1.44);
+      const powerRaw = maxW * pFactor;
+
+      row.powerSmooth += (powerRaw - row.powerSmooth) * (1 - Math.exp(-displayDt / 160));
+
+      const card = powerCards.find(c => c.def.band === band && c.def.ch === ch);
+
+      if (card) {
+        const watts = row.powerSmooth < 0.05 ? 0 : row.powerSmooth;
+        let display;
+        if (watts === 0)          display = '0.0';
+        else if (watts < 10)      display = watts.toFixed(2);
+        else if (watts < 100)     display = watts.toFixed(1);
+        else                      display = Math.round(watts).toString();
+
+        if (card.valueEl.dataset.v !== display) {
+          card.valueEl.dataset.v = display;
+          card.valueEl.innerHTML = display + '<small>W</small>';
+        }
+
+        const pct      = pFactor * 100;
+        const overLoad = pct > 100;
+
+        let cls;
+        if (overLoad)          cls = 'clip';
+        else if (pct > 75)     cls = 'hot';
+        else if (pct > 45)     cls = 'warn';
+        else                   cls = '';
+        card.valueEl.className = 'pc-value' + (cls ? ' ' + cls : '');
+
+        card.fillEl.className = 'pc-fill' + (cls ? ' ' + cls : '');
+        card.fillEl.style.width = Math.min(pct / 1.2, 100).toFixed(1) + '%';
+
+        const pctText = pct.toFixed(1) + '%';
+        if (card.pctEl.textContent !== pctText) card.pctEl.textContent = pctText;
+
+        let pctCls;
+        if (overLoad)         pctCls = 'clip';
+        else if (pct > 90)    pctCls = 'hot';
+        else if (pct > 75)    pctCls = 'warn';
+        else                  pctCls = '';
+        card.pctEl.className = 'pc-pct' + (pctCls ? ' ' + pctCls : '');
+
+        const limVal = parseFloat(card.limInput.value);
+        card.limInput.classList.toggle('warn', isFinite(limVal) && limVal > 100);
+
+        const preset = row.preset;
+        if (preset.custom || !preset.sens) {
+          card.splEl.classList.add('hidden');
+        } else {
+          card.splEl.classList.remove('hidden');
+          updateSplCell(card.spl1mCell,    row.powerSmooth, preset.sens, 1);
+          updateSplCell(card.splFrontCell, row.powerSmooth, preset.sens, preset.distFront);
+          updateSplCell(card.splBackCell,  row.powerSmooth, preset.sens, preset.distBack);
+        }
+      }
+    } else {
+      if (rawOutPeak > row.peakAccum) row.peakAccum = rawOutPeak;
+    }
+  }
+
+  /* ---------- 系统功耗面板 ---------- */
+  if (doDisplay) {
+    let rawTotalOut = 0;
+    let rawTotalCon = 0;
+    for (const r of rows) {
+      const o = r.powerSmooth;
+      rawTotalOut += o;
+      rawTotalCon += channelConsumedW(o, r.preset.maxW, ampClass);
+    }
+
+    const sysK = 1 - Math.exp(-displayDt / 200);
+    totalOutSmooth += (rawTotalOut - totalOutSmooth) * sysK;
+    totalConSmooth += (rawTotalCon - totalConSmooth) * sysK;
+
+    const oFmt = formatWatt(totalOutSmooth);
+    if (totalOutVal.dataset.v !== oFmt.text + oFmt.unit) {
+      totalOutVal.dataset.v = oFmt.text + oFmt.unit;
+      totalOutVal.innerHTML = oFmt.text + '<small>' + oFmt.unit + '</small>';
+    }
+
+    const cFmt = formatWatt(totalConSmooth);
+    if (totalConVal.dataset.v !== cFmt.text + cFmt.unit) {
+      totalConVal.dataset.v = cFmt.text + cFmt.unit;
+      totalConVal.innerHTML = cFmt.text + '<small>' + cFmt.unit + '</small>';
+    }
+
+    const effPct = totalOutSmooth < 0.5
+      ? 0
+      : Math.min((totalOutSmooth / totalConSmooth) * 100, 100);
+
+    const effText = effPct.toFixed(1);
+    if (effVal.dataset.v !== effText) {
+      effVal.dataset.v = effText;
+      effVal.innerHTML = effText + '<small>%</small>';
+    }
+
+    let effCls = '';
+    if (effPct === 0)       effCls = 'idle';
+    else if (effPct < 50)   effCls = 'warn';
+    else if (effPct < 80)   effCls = 'hot';
+    else                    effCls = '';
+    effVal.className = 'sys-value' + (effCls ? ' ' + effCls : '');
+
+    const fillCls = effCls === 'idle' ? '' : effCls;
+    effFill.className = 'sys-fill' + (fillCls ? ' ' + fillCls : '');
+    effFill.style.width = effPct.toFixed(1) + '%';
+
+    updateMainsDisplay(totalConSmooth, displayDt);
+
+    updateEnergy(now, displayDt);
+  }
+
+  updateTotalLoad(now);
+
+  if (now - lastEnergyDisplay >= ENERGY_DISPLAY_MS) {
+    lastEnergyDisplay = now;
+    updateEnergyDisplay(now);
+  }
+
+  if (isFinite(audio.duration) && audio.duration > 0) {
+    timeEl.textContent = `${fmtTime(audio.currentTime)} / ${fmtTime(audio.duration)}`;
+  } else if (audio.src) {
+    timeEl.textContent = `${fmtTime(audio.currentTime)} / --:--`;
+  }
+}
+
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

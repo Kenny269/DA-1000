@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DA-1000 · 双通道功放电平表</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;display:grid;place-items:center;
+    background:radial-gradient(circle at 50% -10%,#1b1f24 0%,#0a0b0d 60%,#050607 100%);
+    font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    color:#c9ced6;-webkit-font-smoothing:antialiased;
+    padding:24px 12px;
+  }
+
+  /* ============ 机箱 ============ */
+  .amp{
+    width:min(840px,96vw);
+    border-radius:16px;
+    border:1px solid #08090b;
+    background:linear-gradient(180deg,#3a4048 0%,#262a2f 6%,#1c1f23 55%,#15181b 100%);
+    box-shadow:
+      0 42px 90px rgba(0,0,0,.85),
+      0 2px 0 rgba(255,255,255,.06) inset,
+      0 -2px 0 rgba(0,0,0,.75) inset;
+    position:relative;
+    overflow:hidden;
+  }
+  /* 拉丝纹理 */
+  .amp::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+    background:repeating-linear-gradient(90deg,
+      rgba(255,255,255,.016) 0 1px, transparent 1px 3px);
+    opacity:.9;
+  }
+  .amp > *{position:relative;z-index:1}
+
+  /* ============ 顶栏 ============ */
+  .amp-head{
+    display:flex;align-items:center;gap:16px;
+    padding:13px 22px;
+    border-bottom:1px solid rgba(0,0,0,.6);
+    background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0));
+  }
+  .pwr{
+    display:flex;align-items:center;gap:7px;
+    font-size:9px;letter-spacing:.24em;color:#6d7580;font-weight:600;
+  }
+  .pwr i{
+    width:7px;height:7px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#b6ffcf,#25e06a 45%,#0a7a34);
+    box-shadow:0 0 7px rgba(37,224,106,.9),0 0 18px rgba(37,224,106,.45);
+    animation:breathe 3.4s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{opacity:1}50%{opacity:.55}}
+
+  .title{display:flex;align-items:baseline;gap:11px;min-width:0}
+  .model{
+    font-size:14px;font-weight:700;letter-spacing:.26em;
+    color:#d8dee6;text-shadow:0 1px 0 #000;
+  }
+  .desc{
+    font-size:9px;letter-spacing:.2em;color:#5f6771;
+    text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .brand{
+    margin-left:auto;font-size:9px;letter-spacing:.3em;color:#4e555e;font-weight:600;
+  }
+
+  /* ============ 表头面板 ============ */
+  .meter-panel{
+    margin:16px 18px;
+    padding:16px 18px 14px;
+    border-radius:11px;
+    background:linear-gradient(180deg,#0b0d0f 0%,#101316 100%);
+    box-shadow:
+      inset 0 4px 16px rgba(0,0,0,.95),
+      inset 0 -1px 0 rgba(255,255,255,.045),
+      0 1px 0 rgba(255,255,255,.05);
+  }
+
+  .grid3{
+    display:grid;
+    grid-template-columns:96px 1fr 66px;
+    gap:14px;
+    align-items:center;
+  }
+
+  /* 刻度行 */
+  .scale-row{padding:0 0 10px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:12px}
+  .scale-tag{
+    font-size:8.5px;letter-spacing:.24em;color:#4d545d;font-weight:600;
+  }
+  .scale-tag.right{text-align:right}
+  .scale-marks{
+    display:grid;grid-template-columns:repeat(8,1fr);gap:7px;
+  }
+  .scale-marks span{
+    text-align:center;font-size:8.5px;letter-spacing:.06em;
+    color:#4e565f;font-weight:600;font-variant-numeric:tabular-nums;
+  }
+  .scale-marks span:last-child{color:#7a3f3c}
+
+  /* 通道行 */
+  .ch-row{padding:4px 0}
+
+  .ch-label{
+    display:flex;align-items:center;gap:7px;
+    font-size:10px;font-weight:600;letter-spacing:.14em;color:#7f878f;
+  }
+  .ch-label .side{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:15px;height:15px;border-radius:3px;
+    background:linear-gradient(180deg,#2c3238,#1c2024);
+    border:1px solid #0a0c0e;
+    font-size:9px;letter-spacing:0;color:#98a1ab;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.09);
+    flex:none;
+  }
+  .ch-label.sub .band{color:#6f9dd0}
+
+  .sep{
+    height:1px;margin:9px 0;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.075),transparent);
+  }
+
+  /* LED 阵列 */
+  .leds{
+    display:grid;grid-template-columns:repeat(8,1fr);gap:7px;
+  }
+
+  .led{
+    position:relative;
+    height:24px;
+    border-radius:4px;
+    overflow:hidden;
+    background:linear-gradient(180deg,#1c1f24,#121417);
+    box-shadow:
+      inset 0 2px 5px rgba(0,0,0,.9),
+      inset 0 -1px 0 rgba(255,255,255,.05),
+      0 1px 0 rgba(255,255,255,.03);
+    /* 熄灭较慢 —— 模拟 LED 余辉 */
+    transition:background 240ms ease-out, box-shadow 240ms ease-out;
+  }
+  /* 玻璃反光 */
+  .led::after{
+    content:"";position:absolute;left:0;right:0;top:0;height:52%;
+    border-radius:4px 4px 0 0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(255,255,255,.085),rgba(255,255,255,0));
+  }
+
+  /* 熄灭时残留的微弱色偏（更真实） */
+  .led[data-c="blue"]  {background:linear-gradient(180deg,#141d2b,#0d1319)}
+  .led[data-c="green"] {background:linear-gradient(180deg,#13251b,#0d1712)}
+  .led[data-c="yellow"]{background:linear-gradient(180deg,#2a2414,#18150c)}
+  .led[data-c="amber"] {background:linear-gradient(180deg,#2a1f11,#18120a)}
+  .led[data-c="orange"]{background:linear-gradient(180deg,#2b1a11,#180f0a)}
+  .led[data-c="red"]   {background:linear-gradient(180deg,#2b1517,#180d0f)}
+
+  .led[data-c="blue"]  {--c:#3d9bff;--cd:#0a4a8c;--g:rgba(61,155,255,.55)}
+  .led[data-c="green"] {--c:#2ee06e;--cd:#0a6730;--g:rgba(46,224,110,.48)}
+  .led[data-c="yellow"]{--c:#f2d13a;--cd:#8a6f08;--g:rgba(242,209,58,.48)}
+  .led[data-c="amber"] {--c:#ff9d2e;--cd:#8a4c04;--g:rgba(255,157,46,.55)}
+  .led[data-c="orange"]{--c:#ff6a2b;--cd:#8c2c05;--g:rgba(255,106,43,.58)}
+  .led[data-c="red"]   {--c:#ff3b30;--cd:#8f0d06;--g:rgba(255,59,48,.65)}
+
+  /* 点亮：灯芯高光 + 光晕，点亮极快 */
+  .led.on{
+    background:radial-gradient(ellipse 150% 130% at 50% 34%,
+      rgba(255,255,255,.94) 0%,
+      var(--c) 40%,
+      var(--cd) 100%);
+    box-shadow:
+      0 0 6px var(--c),
+      0 0 15px var(--g),
+      0 0 30px var(--g),
+      inset 0 1px 1px rgba(255,255,255,.6),
+      inset 0 -1px 3px rgba(0,0,0,.3);
+    transition:background 30ms linear, box-shadow 30ms linear;
+  }
+
+  /* dB 读数 */
+  .ch-db{
+    text-align:right;
+    font-size:11.5px;font-weight:500;
+    font-variant-numeric:tabular-nums;
+    color:#666e78;
+    transition:color .14s;
+    letter-spacing:.02em;
+  }
+  .ch-db.hot{color:#ffd05a;text-shadow:0 0 10px rgba(255,208,90,.35)}
+  .ch-db.clip{color:#ff5b52;text-shadow:0 0 12px rgba(255,59,48,.55)}
+
+  /* ============ 底栏 ============ */
+  .amp-foot{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 22px 18px;
+    border-top:1px solid rgba(0,0,0,.55);
+    background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(0,0,0,.15));
+    flex-wrap:wrap;
+  }
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    height:36px;padding:0 20px;border-radius:7px;
+    border:1px solid #000;
+    background:linear-gradient(180deg,#3b4149,#23272c);
+    color:#d3d9e0;
+    font-size:11px;font-weight:600;letter-spacing:.16em;
+    text-transform:uppercase;cursor:pointer;user-select:none;
+    box-shadow:0 2px 0 #000,inset 0 1px 0 rgba(255,255,255,.13);
+    transition:background .13s,transform .06s;
+  }
+  .btn:hover{background:linear-gradient(180deg,#474e57,#2a2f35)}
+  .btn:active{transform:translateY(1px);box-shadow:0 1px 0 #000,inset 0 1px 0 rgba(255,255,255,.1)}
+  .btn:disabled{opacity:.32;cursor:default;transform:none}
+  .btn.primary{
+    background:linear-gradient(180deg,#2f6b45,#1c4429);
+    color:#c6f5d8;
+    box-shadow:0 2px 0 #000,inset 0 1px 0 rgba(255,255,255,.18);
+  }
+  .btn.primary:hover{background:linear-gradient(180deg,#37804f,#204e2f)}
+
+  .time{
+    font-size:11.5px;color:#69717b;font-variant-numeric:tabular-nums;
+    letter-spacing:.03em;
+  }
+  .fname{
+    margin-left:auto;font-size:10px;color:#5b636d;
+    max-width:34%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    letter-spacing:.04em;
+  }
+
+  /* ============ 响应式 ============ */
+  @media (max-width:600px){
+    .grid3{grid-template-columns:64px 1fr 50px;gap:8px}
+    .leds,.scale-marks{gap:4px}
+    .led{height:17px;border-radius:3px}
+    .ch-label{font-size:9px;gap:5px}
+    .ch-label .side{width:13px;height:13px;font-size:8px}
+    .scale-marks span{font-size:7.5px}
+    .meter-panel{margin:12px 12px;padding:12px 12px 10px}
+    .fname{display:none}
+    .brand,.desc{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="amp">
+  <div class="amp-head">
+    <div class="pwr"><i></i>PWR</div>
+    <div class="title">
+      <span class="model">DA-1000</span>
+      <span class="desc">Stereo Power Amplifier · Dual Channel Metering</span>
+    </div>
+    <div class="brand">AUDIO LAB</div>
+  </div>
+
+  <div class="meter-panel">
+    <div class="scale-row grid3">
+      <div class="scale-tag">LEVEL</div>
+      <div class="scale-marks" id="scaleMarks"></div>
+      <div class="scale-tag right">dB</div>
+    </div>
+    <div id="rows"></div>
+  </div>
+
+  <div class="amp-foot">
+    <label class="btn">
+      <input type="file" id="fileInput" accept="audio/*" hidden>
+      加载音频
+    </label>
+    <button class="btn primary" id="playBtn" disabled>播放</button>
+    <span class="time" id="timeEl">--:-- / --:--</span>
+    <span class="fname" id="fnameEl"></span>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   1. 配置
+   ========================================================= */
+const SUB_CROSSOVER = 120;                 // 超低通道分频点 (Hz)
+const REF_DBFS      = { full: -6, sub: -18 }; // 表头 0dB 对应的 dBFS
+const RELEASE_MS    = 220;                 // 回落时间常数（越大越"慢悠悠"）
+const CLIP_HOLD     = 1200;                // CLIP 保持点亮时长
+const CLIP_LEVEL    = 0.985;               // 原始采样绝对值达到即判削顶
+
+/* 表头刻度：db 为"表头刻度值"，不是 dBFS */
+const SCALE = [
+  { label:'SIG',  db:-40, color:'blue'   },
+  { label:'-12',  db:-12, color:'green'  },
+  { label:'-6',   db:-6,  color:'green'  },
+  { label:'-3',   db:-3,  color:'green'  },
+  { label:'0',    db: 0,  color:'yellow' },
+  { label:'+3',   db: 3,  color:'amber'  },
+  { label:'+6',   db: 6,  color:'orange' },
+  { label:'CLIP', db: 0,  color:'red', clip:true },
+];
+
+/* 四个通道：全频 L/R + 超低 L/R */
+const ROW_DEFS = [
+  { band:'full', ch:0, name:'FULL', side:'L', sub:false },
+  { band:'full', ch:1, name:'FULL', side:'R', sub:false },
+  { band:'sub',  ch:0, name:'SUB',  side:'L', sub:true  },
+  { band:'sub',  ch:1, name:'SUB',  side:'R', sub:true  },
+];
+
+/* =========================================================
+   2. 构建 DOM
+   ========================================================= */
+const scaleMarksEl = document.getElementById('scaleMarks');
+SCALE.forEach(s => {
+  const sp = document.createElement('span');
+  sp.textContent = s.label;
+  scaleMarksEl.append(sp);
+});
+
+const rowsEl = document.getElementById('rows');
+const rows = [];
+
+ROW_DEFS.forEach((def, i) => {
+  const rowEl = document.createElement('div');
+  rowEl.className = 'ch-row grid3';
+
+  // --- 通道名 ---
+  const label = document.createElement('div');
+  label.className = 'ch-label' + (def.sub ? ' sub' : '');
+  label.innerHTML =
+    `<span class="band">${def.name}</span><span class="side">${def.side}</span>`;
+
+  // --- LED 阵列 ---
+  const ledsEl = document.createElement('div');
+  ledsEl.className = 'leds';
+  const leds = SCALE.map(s => {
+    const led = document.createElement('div');
+    led.className = 'led';
+    led.dataset.c = s.color;
+    ledsEl.append(led);
+    return { el: led, db: s.db, clip: !!s.clip, on: false };
+  });
+
+  // --- dB 读数 ---
+  const dbEl = document.createElement('div');
+  dbEl.className = 'ch-db';
+  dbEl.textContent = '−∞';
+
+  rowEl.append(label, ledsEl, dbEl);
+  rowsEl.append(rowEl);
+
+  // 全频 / 超低之间加分隔线
+  if (i === 1) {
+    const sep = document.createElement('div');
+    sep.className = 'sep';
+    rowsEl.append(sep);
+  }
+
+  rows.push({ def, leds, dbEl, db: -100, clipUntil: 0 });
+});
+
+/* =========================================================
+   3. 音频图（双声道分离 + 分频）
+   ========================================================= */
+const audio    = new Audio();
+audio.preload  = 'auto';
+
+let ctx        = null;
+let analysers  = null;   // [{full, sub}, {full, sub}]
+let buffers    = null;   // [{full:Float32Array, sub:Float32Array}, ...]
+
+function ensureAudio() {
+  if (!ctx) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    const src      = ctx.createMediaElementSource(audio);
+    const splitter = ctx.createChannelSplitter(2);
+
+    // 干路：直接出声
+    src.connect(ctx.destination);
+
+    // 分析支路
+    src.connect(splitter);
+
+    analysers = [];
+    buffers   = [];
+
+    for (let i = 0; i < 2; i++) {
+      /* --- 全频：直接分析该声道的宽带信号 --- */
+      const fullA = ctx.createAnalyser();
+      fullA.fftSize = 2048;
+      fullA.smoothingTimeConstant = 0;   // 时域读取不受影响，但保持干净
+      splitter.connect(fullA, i);
+
+      /* --- 超低：两级 12dB/oct 低通 → 24dB/oct 分频 --- */
+      const lp1 = ctx.createBiquadFilter();
+      lp1.type = 'lowpass';
+      lp1.frequency.value = SUB_CROSSOVER;
+      lp1.Q.value = 0.707;
+
+      const lp2 = ctx.createBiquadFilter();
+      lp2.type = 'lowpass';
+      lp2.frequency.value = SUB_CROSSOVER;
+      lp2.Q.value = 0.707;
+
+      const subA = ctx.createAnalyser();
+      subA.fftSize = 2048;
+      subA.smoothingTimeConstant = 0;
+
+      splitter.connect(lp1, i);
+      lp1.connect(lp2);
+      lp2.connect(subA);
+
+      analysers.push({ full: fullA, sub: subA });
+      buffers.push({
+        full: new Float32Array(fullA.fftSize),
+        sub:  new Float32Array(subA.fftSize),
+      });
+    }
+  }
+  if (ctx.state === 'suspended') ctx.resume();
+}
+
+/* =========================================================
+   4. 交互
+   ========================================================= */
+const fileInput = document.getElementById('fileInput');
+const playBtn   = document.getElementById('playBtn');
+const timeEl    = document.getElementById('timeEl');
+const fnameEl   = document.getElementById('fnameEl');
+
+let objectUrl = null;
+
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  ensureAudio();
+
+  if (objectUrl) URL.revokeObjectURL(objectUrl);
+  objectUrl = URL.createObjectURL(file);
+
+  audio.src = objectUrl;
+  fnameEl.textContent = file.name;
+
+  playBtn.disabled = false;
+  audio.play().catch(() => {});
+});
+
+playBtn.addEventListener('click', () => {
+  ensureAudio();
+  if (audio.paused) audio.play().catch(() => {});
+  else              audio.pause();
+});
+
+audio.addEventListener('play',  () => playBtn.textContent = '暂停');
+audio.addEventListener('pause', () => playBtn.textContent = '播放');
+audio.addEventListener('ended', () => playBtn.textContent = '播放');
+
+// 空格键播放/暂停
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space' && !playBtn.disabled && e.target === document.body) {
+    e.preventDefault();
+    playBtn.click();
+  }
+});
+
+/* =========================================================
+   5. 主循环
+   ========================================================= */
+let lastT = performance.now();
+
+function fmtTime(t) {
+  if (!isFinite(t) || t < 0) return '--:--';
+  const m = Math.floor(t / 60);
+  const s = Math.floor(t % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+/* 从 AnalyserNode 取时域峰值 */
+function readPeak(analyser, buf) {
+  analyser.getFloatTimeDomainData(buf);
+  let p = 0;
+  for (let i = 0; i < buf.length; i++) {
+    const v = buf[i] < 0 ? -buf[i] : buf[i];
+    if (v > p) p = v;
+  }
+  return p;
+}
+
+function frame(now) {
+  requestAnimationFrame(frame);
+
+  const dt = Math.min(now - lastT, 100);   // 切后台回来时防跳变
+  lastT = now;
+
+  const running = ctx && ctx.state === 'running';
+
+  for (const row of rows) {
+    const { band, ch } = row.def;
+
+    /* ---------- 采样 ---------- */
+    let peak = 0;
+    if (running) {
+      peak = readPeak(analysers[ch][band], buffers[ch][band]);
+    }
+
+    /* ---------- 转 dB（映射到表头刻度） ---------- */
+    const safe    = peak > 1e-7 ? peak : 1e-7;
+    const meterDb = 20 * Math.log10(safe) - REF_DBFS[band];
+
+    /* ---------- 弹道：瞬起 + 指数缓落 ---------- */
+    if (meterDb >= row.db) {
+      row.db = meterDb;                                  // attack：立即跟上
+    } else {
+      const k = 1 - Math.exp(-dt / RELEASE_MS);          // release：指数回落
+      row.db += (meterDb - row.db) * k;
+    }
+    if (row.db < -70) row.db = -70;
+
+    /* ---------- 削顶检测 ---------- */
+    if (peak >= CLIP_LEVEL) row.clipUntil = now + CLIP_HOLD;
+    const clipOn = now < row.clipUntil;
+
+    /* ---------- 驱动 LED ---------- */
+    for (const led of row.leds) {
+      const on = led.clip ? clipOn : (row.db >= led.db);
+      if (on !== led.on) {
+        led.on = on;
+        led.el.classList.toggle('on', on);
+      }
+    }
+
+    /* ---------- dB 读数 ---------- */
+    let txt;
+    if (row.db <= -59.95) {
+      txt = '−∞';
+    } else {
+      txt = (row.db >= 0 ? '+' : '−') + Math.abs(row.db).toFixed(1);
+    }
+    if (row.dbEl.textContent !== txt) row.dbEl.textContent = txt;
+
+    row.dbEl.classList.toggle('hot',  row.db >= 0 && !clipOn);
+    row.dbEl.classList.toggle('clip', clipOn);
+  }
+
+  /* ---------- 时间显示 ---------- */
+  if (isFinite(audio.duration) && audio.duration > 0) {
+    timeEl.textContent =
+      `${fmtTime(audio.currentTime)} / ${fmtTime(audio.duration)}`;
+  } else if (audio.src) {
+    timeEl.textContent = `${fmtTime(audio.currentTime)} / --:--`;
+  }
+}
+
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

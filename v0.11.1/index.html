@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DA-1000 · 双通道功放电平表</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;display:grid;place-items:center;
+    background:radial-gradient(circle at 50% -10%,#1b1f24 0%,#0a0b0d 60%,#050607 100%);
+    font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    color:#c9ced6;-webkit-font-smoothing:antialiased;
+    padding:20px 12px;
+  }
+
+  .amp{
+    width:min(1000px,97vw);
+    border-radius:16px;
+    border:1px solid #08090b;
+    background:linear-gradient(180deg,#3a4048 0%,#262a2f 6%,#1c1f23 55%,#15181b 100%);
+    box-shadow:
+      0 42px 90px rgba(0,0,0,.85),
+      0 2px 0 rgba(255,255,255,.06) inset,
+      0 -2px 0 rgba(0,0,0,.75) inset;
+    position:relative;
+    overflow:hidden;
+  }
+  .amp::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+    background:repeating-linear-gradient(90deg,
+      rgba(255,255,255,.016) 0 1px, transparent 1px 3px);
+  }
+  .amp > *{position:relative;z-index:1}
+
+  .amp-head{
+    display:flex;align-items:center;gap:16px;
+    padding:12px 22px;
+    border-bottom:1px solid rgba(0,0,0,.6);
+    background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0));
+  }
+  .pwr{display:flex;align-items:center;gap:7px;font-size:9px;letter-spacing:.24em;color:#6d7580;font-weight:600}
+  .pwr i{
+    width:7px;height:7px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#b6ffcf,#25e06a 45%,#0a7a34);
+    box-shadow:0 0 7px rgba(37,224,106,.9),0 0 18px rgba(37,224,106,.45);
+    animation:breathe 3.4s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{opacity:1}50%{opacity:.55}}
+
+  .title{display:flex;align-items:baseline;gap:11px;min-width:0}
+  .model{font-size:14px;font-weight:700;letter-spacing:.26em;color:#d8dee6;text-shadow:0 1px 0 #000}
+  .desc{font-size:9px;letter-spacing:.2em;color:#5f6771;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brand{margin-left:auto;font-size:9px;letter-spacing:.3em;color:#4e555e;font-weight:600}
+
+  /* ===== 表头 ===== */
+  .meter-panel{
+    margin:14px 18px 0;padding:14px 18px 12px;border-radius:11px;
+    background:linear-gradient(180deg,#0b0d0f 0%,#101316 100%);
+    box-shadow:inset 0 4px 16px rgba(0,0,0,.95),inset 0 -1px 0 rgba(255,255,255,.045),0 1px 0 rgba(255,255,255,.05);
+  }
+  .grid3{display:grid;grid-template-columns:100px 1fr 70px;gap:14px;align-items:center}
+  .scale-row{padding:0 0 9px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:10px}
+  .scale-tag{font-size:8.5px;letter-spacing:.24em;color:#4d545d;font-weight:600}
+  .scale-tag.right{text-align:right}
+  .scale-marks{display:grid;grid-template-columns:repeat(8,1fr);gap:7px}
+  .scale-marks span{text-align:center;font-size:8.5px;letter-spacing:.06em;color:#4e565f;font-weight:600;font-variant-numeric:tabular-nums}
+  .scale-marks span:last-child{color:#7a3f3c}
+
+  .ch-row{padding:3px 0}
+  .ch-label{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:600;letter-spacing:.14em;color:#7f878f}
+  .ch-label .side{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:15px;height:15px;border-radius:3px;
+    background:linear-gradient(180deg,#2c3238,#1c2024);border:1px solid #0a0c0e;
+    font-size:9px;letter-spacing:0;color:#98a1ab;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.09);flex:none;
+  }
+  .ch-label.sub .band{color:#6f9dd0}
+  .sep{height:1px;margin:8px 0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.075),transparent)}
+
+  .leds{display:grid;grid-template-columns:repeat(8,1fr);gap:7px}
+  .led{
+    position:relative;height:22px;border-radius:4px;overflow:hidden;
+    box-shadow:inset 0 2px 5px rgba(0,0,0,.9),inset 0 -1px 0 rgba(255,255,255,.05),0 1px 0 rgba(255,255,255,.03);
+    transition:background 260ms ease-out, box-shadow 260ms ease-out;
+  }
+  .led::after{
+    content:"";position:absolute;left:0;right:0;top:0;height:52%;
+    border-radius:4px 4px 0 0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(255,255,255,.085),rgba(255,255,255,0));
+  }
+  .led[data-c="blue"]  {background:linear-gradient(180deg,#141d2b,#0d1319);--c:#3d9bff;--cd:#0a4a8c;--g:rgba(61,155,255,.55)}
+  .led[data-c="green"] {background:linear-gradient(180deg,#13251b,#0d1712);--c:#2ee06e;--cd:#0a6730;--g:rgba(46,224,110,.48)}
+  .led[data-c="yellow"]{background:linear-gradient(180deg,#2a2414,#18150c);--c:#f2d13a;--cd:#8a6f08;--g:rgba(242,209,58,.48)}
+  .led[data-c="amber"] {background:linear-gradient(180deg,#2a1f11,#18120a);--c:#ff9d2e;--cd:#8a4c04;--g:rgba(255,157,46,.55)}
+  .led[data-c="orange"]{background:linear-gradient(180deg,#2b1a11,#180f0a);--c:#ff6a2b;--cd:#8c2c05;--g:rgba(255,106,43,.58)}
+  .led[data-c="red"]   {background:linear-gradient(180deg,#2b1517,#180d0f);--c:#ff3b30;--cd:#8f0d06;--g:rgba(255,59,48,.65)}
+
+  .led.on{
+    background:radial-gradient(ellipse 150% 130% at 50% 34%,rgba(255,255,255,.94) 0%,var(--c) 40%,var(--cd) 100%);
+    box-shadow:0 0 6px var(--c),0 0 15px var(--g),0 0 30px var(--g),
+      inset 0 1px 1px rgba(255,255,255,.6),inset 0 -1px 3px rgba(0,0,0,.3);
+    transition:background 30ms linear, box-shadow 30ms linear;
+  }
+
+  .ch-db{text-align:right;font-size:11.5px;font-weight:500;font-variant-numeric:tabular-nums;color:#666e78;transition:color .14s;letter-spacing:.02em}
+  .ch-db.hot{color:#ffd05a;text-shadow:0 0 10px rgba(255,208,90,.35)}
+  .ch-db.clip{color:#ff5b52;text-shadow:0 0 12px rgba(255,59,48,.55)}
+
+  /* ===== 旋钮面板 ===== */
+  .control-panel{
+    margin:12px 18px 0;padding:14px 18px 10px;border-radius:11px;
+    background:linear-gradient(180deg,#14171a 0%,#0f1214 100%);
+    border:1px solid rgba(0,0,0,.5);
+    box-shadow:inset 0 2px 10px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.04);
+  }
+  .knobs-row{display:flex;align-items:flex-start;justify-content:center;gap:6px;flex-wrap:wrap}
+  .knob-item{display:flex;flex-direction:column;align-items:center;width:88px;user-select:none}
+  .knob-item + .knob-item{margin-left:2px}
+
+  .knob-svg{width:76px;height:76px;cursor:grab;touch-action:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6));transition:filter .15s}
+  .knob-svg:hover{filter:drop-shadow(0 4px 8px rgba(0,0,0,.6)) brightness(1.08)}
+  .knob-svg.dragging{cursor:grabbing}
+
+  .knob-tick{stroke:#3c434b;stroke-width:1.4;stroke-linecap:round}
+  .knob-tick.major{stroke:#5b636d;stroke-width:2}
+  .knob-body{fill:url(#knobGrad);stroke:#0a0b0c;stroke-width:.8}
+  .knob-indicator{stroke:#e8ecf1;stroke-width:2.8;stroke-linecap:round;filter:drop-shadow(0 0 3px rgba(255,255,255,.55))}
+  .knob-cap{fill:url(#capGrad);stroke:rgba(0,0,0,.65);stroke-width:.6}
+
+  .knob-label{margin-top:5px;text-align:center;line-height:1.15}
+  .knob-name{display:block;font-size:9px;font-weight:700;letter-spacing:.14em;color:#8b939d}
+  .knob-sub{display:block;font-size:7.5px;letter-spacing:.1em;color:#5b636d;margin-top:1px}
+  .knob-item.sens .knob-name{color:#7fb0d6}
+
+  .knob-input{
+    margin-top:4px;width:72px;height:19px;padding:0 3px;border-radius:3px;
+    border:1px solid #0a0c0e;
+    background:linear-gradient(180deg,#0d1012,#090b0d);
+    color:#8b939d;font-size:9px;font-family:inherit;
+    font-variant-numeric:tabular-nums;letter-spacing:.03em;
+    text-align:center;outline:none;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.75);
+    transition:color .15s,border-color .15s,box-shadow .15s;
+  }
+  .knob-input:hover{color:#b5bcc5;border-color:#1a1e22}
+  .knob-input:focus{color:#e6edf5;border-color:#3a5b7a;
+    background:linear-gradient(180deg,#101418,#0b0e10);
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.75),0 0 7px rgba(61,155,255,.4);}
+
+  .knob-divider{width:1px;align-self:stretch;margin:8px 10px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.09),transparent)}
+
+  /* ===== 功率面板 ===== */
+  .power-panel{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    gap:10px;margin:12px 18px 0;
+  }
+  .power-card{
+    background:linear-gradient(180deg,#0b0d0f,#0e1113);
+    border:1px solid #000;border-radius:8px;
+    padding:9px 11px 10px;
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.035);
+    position:relative;overflow:hidden;
+  }
+  .pc-name{font-size:8.5px;font-weight:700;letter-spacing:.16em;color:#767e88;margin-bottom:5px}
+  .pc-name.sub{color:#6f9dd0}
+
+  .pc-value{
+    font-size:22px;font-weight:300;line-height:1;
+    color:#8fe8b0;font-variant-numeric:tabular-nums;
+    text-shadow:0 0 14px rgba(46,224,110,.3);
+    transition:color .15s,text-shadow .15s;
+    letter-spacing:-.02em;
+  }
+  .pc-value small{font-size:10px;font-weight:500;color:#5c6670;margin-left:2px;letter-spacing:.06em;text-shadow:none}
+  .pc-value.warn{color:#ffd05a;text-shadow:0 0 14px rgba(255,208,90,.35)}
+  .pc-value.hot{color:#ff7a4d;text-shadow:0 0 14px rgba(255,106,43,.45)}
+  .pc-value.clip{color:#ff5b52;text-shadow:0 0 16px rgba(255,59,48,.55)}
+
+  .pc-bar{height:4px;border-radius:2px;margin-top:7px;background:#14171a;box-shadow:inset 0 1px 3px rgba(0,0,0,.9);overflow:hidden}
+  .pc-fill{height:100%;width:0%;border-radius:2px;background:linear-gradient(90deg,#2ee06e,#8fe8b0);box-shadow:0 0 6px rgba(46,224,110,.5);transition:width 60ms linear,background 160ms,box-shadow 160ms}
+  .pc-fill.warn{background:linear-gradient(90deg,#f2d13a,#ffd05a);box-shadow:0 0 6px rgba(242,209,58,.55)}
+  .pc-fill.hot{background:linear-gradient(90deg,#ff9d2e,#ff7a4d);box-shadow:0 0 6px rgba(255,157,46,.6)}
+  .pc-fill.clip{background:linear-gradient(90deg,#ff3b30,#ff5b52);box-shadow:0 0 8px rgba(255,59,48,.7)}
+
+  .pc-select{
+    display:block;width:100%;margin-top:7px;height:22px;
+    padding:0 18px 0 6px;border-radius:3px;
+    border:1px solid #0a0c0e;background-color:#14171a;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'><path d='M1 1l3 3 3-3' fill='none' stroke='%23707880' stroke-width='1.1' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 6px center;background-size:8px 5px;
+    color:#98a1ab;font-size:8.5px;font-family:inherit;letter-spacing:.03em;
+    cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;
+    transition:color .15s,border-color .15s,box-shadow .15s;
+    text-overflow:ellipsis;
+  }
+  .pc-select:hover{color:#c9ced6;border-color:#1a1e22}
+  .pc-select:focus{border-color:#3a5b7a;box-shadow:0 0 7px rgba(61,155,255,.4);color:#d0d6dd}
+  .pc-select option{background:#1c2024;color:#c9ced6}
+
+  .pc-custom{
+    display:none;width:100%;margin-top:5px;height:20px;padding:0 6px;
+    border-radius:3px;border:1px solid #0a0c0e;
+    background:linear-gradient(180deg,#0d1012,#090b0d);
+    color:#98a1ab;font-size:9px;font-family:inherit;
+    outline:none;box-shadow:inset 0 1px 3px rgba(0,0,0,.75);
+  }
+  .pc-custom.show{display:block}
+  .pc-custom:focus{border-color:#3a5b7a;color:#e6edf5;box-shadow:inset 0 1px 3px rgba(0,0,0,.75),0 0 7px rgba(61,155,255,.4)}
+
+  .pc-foot{
+    display:flex;justify-content:space-between;align-items:center;
+    gap:6px;
+    margin-top:8px;padding-top:7px;
+    border-top:1px solid rgba(255,255,255,.045);
+  }
+
+  .pc-pct{
+    font-size:11.5px;font-weight:700;letter-spacing:.02em;
+    font-variant-numeric:tabular-nums;
+    color:#8fe8b0;transition:color .15s,text-shadow .15s;
+    text-shadow:0 0 8px rgba(46,224,110,.25);
+    flex-shrink:0;
+  }
+  .pc-pct.warn{color:#ffd05a;text-shadow:0 0 8px rgba(255,208,90,.35)}
+  .pc-pct.hot{color:#ff9d2e;text-shadow:0 0 10px rgba(255,157,46,.45)}
+  .pc-pct.clip{
+    color:#ff3b30;
+    text-shadow:0 0 10px rgba(255,59,48,.7),0 0 20px rgba(255,59,48,.35);
+    animation:alertPulse 1.1s ease-in-out infinite;
+  }
+  @keyframes alertPulse{0%,100%{opacity:1}50%{opacity:.7}}
+
+  .pc-lim{
+    display:inline-flex;align-items:center;gap:4px;
+    font-size:9px;color:#5f6771;letter-spacing:.08em;font-weight:600;
+    flex-shrink:0;
+  }
+  .pc-lim input{
+    width:52px;height:20px;padding:0 5px;border-radius:3px;
+    border:1px solid #0a0c0e;
+    background:linear-gradient(180deg,#0d1012,#090b0d);
+    color:#98a1ab;font-size:10px;font-family:inherit;
+    font-variant-numeric:tabular-nums;text-align:right;
+    outline:none;box-shadow:inset 0 1px 3px rgba(0,0,0,.75);
+    transition:color .15s,border-color .15s,box-shadow .15s;
+  }
+  .pc-lim input:focus{border-color:#3a5b7a;color:#e6edf5;box-shadow:inset 0 1px 3px rgba(0,0,0,.75),0 0 7px rgba(61,155,255,.4)}
+  .pc-lim input.warn{
+    border-color:#7a2d26;color:#ff5b52;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.75),0 0 7px rgba(255,59,48,.35);
+  }
+
+  /* ===== 响度栏 ===== */
+  .pc-spl{
+    display:flex;justify-content:space-between;gap:3px;
+    margin-top:8px;padding-top:7px;
+    border-top:1px solid rgba(255,255,255,.035);
+  }
+  .pc-spl.hidden{display:none}
+
+  .spl-cell{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px}
+  .spl-label{
+    font-size:7px;font-weight:700;letter-spacing:.08em;
+    color:#565f69;text-transform:uppercase;
+    white-space:nowrap;font-variant-numeric:tabular-nums;
+  }
+  .spl-val{
+    font-size:12px;font-weight:400;
+    font-variant-numeric:tabular-nums;
+    color:#8ca8c4;letter-spacing:-.01em;
+    transition:color .15s,text-shadow .15s;
+    white-space:nowrap;line-height:1;
+  }
+  .spl-val small{font-size:7.5px;color:#5a6470;margin-left:1px;font-weight:500}
+  .spl-cell.loud .spl-val{color:#ffd05a;text-shadow:0 0 8px rgba(255,208,90,.3)}
+  .spl-cell.loud .spl-val small{color:#8a6f08}
+  .spl-cell.danger .spl-val{color:#ff5b52;text-shadow:0 0 10px rgba(255,59,48,.5)}
+  .spl-cell.danger .spl-val small{color:#8f0d06}
+
+  /* ===== 系统面板 ===== */
+  .system-panel{
+    display:grid;
+    grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr;
+    gap:10px;
+    margin:12px 18px 0;
+    padding:12px 16px;
+    border-radius:11px;
+    background:linear-gradient(180deg,#181c20 0%,#0f1214 100%);
+    border:1px solid rgba(0,0,0,.55);
+    box-shadow:inset 0 2px 10px rgba(0,0,0,.55),0 1px 0 rgba(255,255,255,.045);
+  }
+  .sys-item{display:flex;flex-direction:column;gap:5px;min-width:0}
+  .sys-label{
+    font-size:8.5px;font-weight:700;letter-spacing:.16em;
+    color:#767e88;text-transform:uppercase;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .sys-value{
+    font-size:22px;font-weight:300;line-height:1;
+    color:#8fe8b0;font-variant-numeric:tabular-nums;
+    letter-spacing:-.02em;
+    text-shadow:0 0 14px rgba(46,224,110,.3);
+    transition:color .15s,text-shadow .15s;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .sys-value small{font-size:10px;font-weight:500;color:#5c6670;margin-left:2px;letter-spacing:.06em;text-shadow:none}
+  .sys-value.warn{color:#ffd05a;text-shadow:0 0 14px rgba(255,208,90,.35)}
+  .sys-value.hot{color:#ff7a4d;text-shadow:0 0 14px rgba(255,106,43,.45)}
+  .sys-value.clip{
+    color:#ff3b30;
+    text-shadow:0 0 10px rgba(255,59,48,.7),0 0 22px rgba(255,59,48,.4);
+    animation:alertPulse 1.1s ease-in-out infinite;
+  }
+  .sys-value.idle{color:#5c6670;text-shadow:none}
+
+  .sys-bar{
+    height:3px;border-radius:2px;
+    background:#14171a;
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.9);
+    overflow:hidden;margin-top:2px;
+  }
+  /* ★ 修复：移除 background 过渡，避免渐变切换时闪现空背景 */
+  .sys-fill{
+    height:100%;width:0%;border-radius:2px;
+    background:linear-gradient(90deg,#2ee06e,#8fe8b0);
+    box-shadow:0 0 6px rgba(46,224,110,.5);
+    transition:width 80ms linear,box-shadow 160ms;
+  }
+  .sys-fill.warn{background:linear-gradient(90deg,#f2d13a,#ffd05a);box-shadow:0 0 6px rgba(242,209,58,.55)}
+  .sys-fill.hot{background:linear-gradient(90deg,#ff9d2e,#ff7a4d);box-shadow:0 0 6px rgba(255,157,46,.6)}
+  .sys-fill.clip{background:linear-gradient(90deg,#ff3b30,#ff5b52);box-shadow:0 0 8px rgba(255,59,48,.7)}
+
+  .sys-select{
+    height:26px;
+    padding:0 22px 0 8px;
+    border-radius:3px;
+    border:1px solid #0a0c0e;
+    background-color:#14171a;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'><path d='M1 1l3 3 3-3' fill='none' stroke='%23707880' stroke-width='1.1' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 8px center;
+    background-size:8px 5px;
+    color:#c9ced6;font-size:11.5px;font-family:inherit;
+    letter-spacing:.03em;font-weight:500;
+    cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.65);
+    transition:color .15s,border-color .15s,box-shadow .15s;
+    text-overflow:ellipsis;
+  }
+  .sys-select:hover{color:#e0e6ec;border-color:#1a1e22}
+  .sys-select:focus{border-color:#3a5b7a;box-shadow:inset 0 1px 3px rgba(0,0,0,.65),0 0 7px rgba(61,155,255,.4)}
+  .sys-select option{background:#1c2024;color:#c9ced6}
+
+  .sys-input{
+    display:none;
+    width:100%;height:24px;padding:0 7px;
+    margin-top:2px;
+    border-radius:3px;border:1px solid #0a0c0e;
+    background:linear-gradient(180deg,#0d1012,#090b0d);
+    color:#c9ced6;font-size:11px;font-family:inherit;
+    font-variant-numeric:tabular-nums;
+    outline:none;box-shadow:inset 0 1px 3px rgba(0,0,0,.65);
+  }
+  .sys-input.show{display:block}
+  .sys-input:focus{border-color:#3a5b7a;color:#e6edf5;box-shadow:inset 0 1px 3px rgba(0,0,0,.65),0 0 7px rgba(61,155,255,.4)}
+
+  /* ===== 市电三相面板 ===== */
+  .mains-panel{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin:12px 18px 16px;
+    padding:12px 16px;
+    border-radius:11px;
+    background:linear-gradient(180deg,#0d1013 0%,#090b0e 100%);
+    border:1px solid rgba(0,0,0,.7);
+    box-shadow:inset 0 2px 10px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.035);
+  }
+  .mains-title{
+    display:flex;flex-direction:column;gap:2px;flex:0 0 auto;padding-right:14px;
+    border-right:1px solid rgba(255,255,255,.06);
+  }
+  .mains-title-main{
+    font-size:10px;font-weight:700;letter-spacing:.18em;
+    color:#8ca8c4;text-transform:uppercase;
+  }
+  .mains-title-sub{
+    font-size:8px;font-weight:600;letter-spacing:.12em;
+    color:#4d545d;
+  }
+  .mains-cells{
+    flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  }
+  .mains-cell{
+    display:flex;align-items:center;gap:10px;
+    padding:7px 11px;
+    border-radius:6px;
+    background:linear-gradient(180deg,#101418,#0a0c0e);
+    border:1px solid #0a0c0e;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.75);
+    min-width:0;
+  }
+  .mc-phase{
+    font-size:10px;font-weight:700;letter-spacing:.1em;
+    color:#7c9ab8;
+    flex:0 0 auto;
+    padding:2px 6px;
+    border-radius:3px;
+    background:linear-gradient(180deg,#1e262e,#151b21);
+    border:1px solid rgba(0,0,0,.6);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .mc-values{
+    display:flex;align-items:baseline;gap:12px;margin-left:auto;
+    font-variant-numeric:tabular-nums;
+  }
+  .mc-volt{
+    font-size:15px;font-weight:400;
+    color:#8fe8b0;
+    letter-spacing:-.01em;
+    transition:color .2s;
+    white-space:nowrap;
+  }
+  .mc-volt.warn{color:#ffd05a}
+  .mc-volt.hot{color:#ff9d2e}
+  .mc-volt small{font-size:8px;font-weight:500;color:#5c6670;margin-left:2px;letter-spacing:.06em}
+  .mc-amp{
+    font-size:15px;font-weight:300;
+    color:#c9ced6;
+    letter-spacing:-.01em;
+    white-space:nowrap;
+  }
+  .mc-amp small{font-size:8px;font-weight:500;color:#5c6670;margin-left:2px;letter-spacing:.06em}
+
+  /* ===== 底栏 ===== */
+  .amp-foot{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 22px 16px;
+    border-top:1px solid rgba(0,0,0,.55);
+    background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(0,0,0,.15));
+    flex-wrap:wrap;
+  }
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    height:36px;padding:0 20px;border-radius:7px;border:1px solid #000;
+    background:linear-gradient(180deg,#3b4149,#23272c);
+    color:#d3d9e0;font-size:11px;font-weight:600;letter-spacing:.16em;
+    text-transform:uppercase;cursor:pointer;user-select:none;
+    box-shadow:0 2px 0 #000,inset 0 1px 0 rgba(255,255,255,.13);
+    transition:background .13s,transform .06s;
+  }
+  .btn:hover{background:linear-gradient(180deg,#474e57,#2a2f35)}
+  .btn:active{transform:translateY(1px);box-shadow:0 1px 0 #000,inset 0 1px 0 rgba(255,255,255,.1)}
+  .btn:disabled{opacity:.32;cursor:default;transform:none}
+  .btn.primary{background:linear-gradient(180deg,#2f6b45,#1c4429);color:#c6f5d8;box-shadow:0 2px 0 #000,inset 0 1px 0 rgba(255,255,255,.18)}
+  .btn.primary:hover{background:linear-gradient(180deg,#37804f,#204e2f)}
+
+  .time{font-size:11.5px;color:#69717b;font-variant-numeric:tabular-nums;letter-spacing:.03em}
+
+  .refresh-wrap{
+    display:inline-flex;align-items:center;gap:7px;
+    padding:0 10px;height:36px;border-radius:7px;
+    border:1px solid rgba(0,0,0,.6);
+    background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(0,0,0,.2));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 1px 0 rgba(255,255,255,.03);
+  }
+  .refresh-label{
+    font-size:9px;font-weight:700;letter-spacing:.18em;color:#767e88;
+    text-transform:uppercase;
+  }
+  .refresh-select{
+    height:24px;padding:0 20px 0 8px;
+    border-radius:4px;border:1px solid #0a0c0e;
+    background-color:#1c2024;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'><path d='M1 1l3 3 3-3' fill='none' stroke='%2398a1ab' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat:no-repeat;background-position:right 7px center;background-size:8px 5px;
+    color:#c9ced6;font-size:10.5px;font-family:inherit;
+    letter-spacing:.04em;font-weight:600;
+    cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.65);
+    transition:color .15s,border-color .15s,box-shadow .15s;
+  }
+  .refresh-select:hover{color:#e0e6ec;border-color:#1a1e22}
+  .refresh-select:focus{border-color:#3a5b7a;box-shadow:inset 0 1px 3px rgba(0,0,0,.65),0 0 7px rgba(61,155,255,.4)}
+  .refresh-select option{background:#1c2024;color:#c9ced6;padding:4px}
+
+  .fname{margin-left:auto;font-size:10px;color:#5b636d;max-width:24%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.04em}
+
+  @media (max-width:920px){
+    .system-panel{grid-template-columns:repeat(3,1fr);gap:10px}
+    .sys-value{font-size:20px}
+  }
+  @media (max-width:780px){
+    .grid3{grid-template-columns:64px 1fr 50px;gap:8px}
+    .leds,.scale-marks{gap:4px}
+    .led{height:16px;border-radius:3px}
+    .ch-label{font-size:9px;gap:5px}
+    .ch-label .side{width:13px;height:13px;font-size:8px}
+    .scale-marks span{font-size:7.5px}
+    .meter-panel{margin:10px 10px 0;padding:10px 12px 8px}
+    .control-panel{margin:10px 10px 0;padding:10px 8px 6px}
+    .knob-item{width:70px}
+    .knob-svg{width:58px;height:58px}
+    .knob-name{font-size:8px}
+    .knob-input{width:58px;font-size:8px;height:17px}
+    .power-panel{grid-template-columns:repeat(2,1fr);margin:10px 10px 0;gap:8px}
+    .pc-value{font-size:19px}
+    .spl-val{font-size:11px}
+    .spl-label{font-size:6.5px}
+    .system-panel{grid-template-columns:repeat(2,1fr);margin:10px 10px 0;gap:9px;padding:10px 12px}
+    .sys-value{font-size:18px}
+    .sys-select{font-size:10.5px;height:24px}
+    .mains-panel{flex-direction:column;align-items:stretch;gap:9px;margin:10px 10px 12px;padding:10px 12px}
+    .mains-title{flex-direction:row;align-items:baseline;gap:8px;padding-right:0;border-right:none;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:6px}
+    .mains-cells{grid-template-columns:1fr;gap:7px}
+    .mc-volt,.mc-amp{font-size:14px}
+    .fname{display:none}
+    .brand,.desc{display:none}
+    .refresh-label{display:none}
+  }
+  @media (max-width:420px){
+    .knob-item{width:60px}
+    .knob-svg{width:50px;height:50px}
+    .knob-input{width:50px}
+    .amp-foot{padding:10px 12px 14px;gap:8px}
+    .btn{padding:0 12px;height:32px;font-size:10px}
+    .refresh-wrap{padding:0 6px;height:32px}
+    .refresh-select{height:22px;font-size:10px}
+    .system-panel{grid-template-columns:1fr 1fr}
+    .sys-value{font-size:16px}
+    .pc-lim input{width:46px}
+    .mc-volt,.mc-amp{font-size:13px}
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <radialGradient id="knobGrad" cx="38%" cy="30%" r="78%">
+      <stop offset="0%"  stop-color="#5a626b"/>
+      <stop offset="35%" stop-color="#3d444c"/>
+      <stop offset="75%" stop-color="#282d33"/>
+      <stop offset="100%" stop-color="#181c20"/>
+    </radialGradient>
+    <radialGradient id="capGrad" cx="38%" cy="32%" r="80%">
+      <stop offset="0%"  stop-color="#454c55"/>
+      <stop offset="60%" stop-color="#2a2f35"/>
+      <stop offset="100%" stop-color="#15181b"/>
+    </radialGradient>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#2a2f35"/>
+      <stop offset="100%" stop-color="#14171a"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<div class="amp">
+
+  <div class="amp-head">
+    <div class="pwr"><i></i>PWR</div>
+    <div class="title">
+      <span class="model">DA-1000</span>
+      <span class="desc">Stereo Bi-Amp · Active Crossover · Power Limiter</span>
+    </div>
+    <div class="brand">AUDIO LAB</div>
+  </div>
+
+  <div class="meter-panel">
+    <div class="scale-row grid3">
+      <div class="scale-tag">LEVEL</div>
+      <div class="scale-marks" id="scaleMarks"></div>
+      <div class="scale-tag right">dB</div>
+    </div>
+    <div id="rows"></div>
+  </div>
+
+  <div class="control-panel">
+    <div class="knobs-row" id="knobsRow"></div>
+  </div>
+
+  <div class="power-panel" id="powerPanel"></div>
+
+  <div class="system-panel">
+    <div class="sys-item">
+      <div class="sys-label">分频点</div>
+      <select class="sys-select" id="crossoverSelect">
+        <option value="50">50 Hz</option>
+        <option value="60">60 Hz</option>
+        <option value="80">80 Hz</option>
+        <option value="100">100 Hz</option>
+        <option value="120" selected>120 Hz</option>
+        <option value="150">150 Hz</option>
+        <option value="200">200 Hz</option>
+        <option value="250">250 Hz</option>
+        <option value="custom">自定义 …</option>
+      </select>
+      <input class="sys-input" id="crossoverCustom" type="number" min="20" max="1000" step="1" placeholder="Hz">
+    </div>
+
+    <div class="sys-item">
+      <div class="sys-label">总输出功率</div>
+      <div class="sys-value" id="totalOutVal">0<small>W</small></div>
+    </div>
+
+    <div class="sys-item">
+      <div class="sys-label">市电消耗</div>
+      <div class="sys-value" id="totalConVal">0<small>W</small></div>
+    </div>
+
+    <div class="sys-item">
+      <div class="sys-label">效率</div>
+      <div class="sys-value" id="effVal">0.0<small>%</small></div>
+      <div class="sys-bar"><div class="sys-fill" id="effFill"></div></div>
+    </div>
+
+    <div class="sys-item">
+      <div class="sys-label">整体负载</div>
+      <div class="sys-value" id="totalLoadVal">0.0<small>%</small></div>
+      <div class="sys-bar"><div class="sys-fill" id="totalLoadFill"></div></div>
+    </div>
+
+    <div class="sys-item">
+      <div class="sys-label">功放类别</div>
+      <select class="sys-select" id="ampClassSelect">
+        <option value="AB">AB 类</option>
+        <option value="H">H 类</option>
+        <option value="D" selected>D 类</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="mains-panel">
+    <div class="mains-title">
+      <span class="mains-title-main">市电 · 三相</span>
+      <span class="mains-title-sub">MAINS · 3-PHASE AC</span>
+    </div>
+    <div class="mains-cells" id="mainsCells"></div>
+  </div>
+
+  <div class="amp-foot">
+    <label class="btn">
+      <input type="file" id="fileInput" accept="audio/*" hidden>
+      加载音频
+    </label>
+    <button class="btn primary" id="playBtn" disabled>播放</button>
+    <span class="time" id="timeEl">--:-- / --:--</span>
+
+    <label class="refresh-wrap" title="数据刷新速率（整体负载除外）">
+      <span class="refresh-label">刷新率</span>
+      <select class="refresh-select" id="refreshSelect">
+        <option value="low">低</option>
+        <option value="medium">中</option>
+        <option value="high">高</option>
+        <option value="realtime" selected>实时</option>
+      </select>
+    </label>
+
+    <span class="fname" id="fnameEl"></span>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   1. 配置
+   ========================================================= */
+const BASE_REF      = { full: -6, sub: -12 };
+const RELEASE_MS    = 220;
+const CLIP_HOLD     = 1200;
+const CLIP_LEVEL    = 0.985;
+const MAX_LIMIT_PCT = 120;
+
+const MAINS_NOMINAL  = 237;
+const MAINS_MIN      = 220;
+const MAINS_MAX      = 255;
+const MAINS_PF       = 0.92;
+
+let crossoverFreq = 120;
+
+const REFRESH_MODES = {
+  low:      { label: '低',   intervalMs: 100 },
+  medium:   { label: '中',   intervalMs: 50  },
+  high:     { label: '高',   intervalMs: 25  },
+  realtime: { label: '实时', intervalMs: 0   },
+};
+
+const LOAD_REFRESH_MS = 100;
+
+/* =========================================================
+   2. 功放类别模型
+   ========================================================= */
+const AMP_CLASSES = {
+  AB: { name:'AB', incEff: 0.60, idleBase: 20, idlePerW: 0.08 },
+  H:  { name:'H',  incEff: 0.80, idleBase: 15, idlePerW: 0.04 },
+  D:  { name:'D',  incEff: 0.92, idleBase:  5, idlePerW: 0.01 },
+};
+let ampClass = 'D';
+
+function channelIdleW(maxW, cls) {
+  const c = AMP_CLASSES[cls];
+  return c.idleBase + c.idlePerW * maxW;
+}
+function channelConsumedW(outputW, maxW, cls) {
+  const c = AMP_CLASSES[cls];
+  return channelIdleW(maxW, cls) + outputW / c.incEff;
+}
+
+/* =========================================================
+   3. 扬声器预设
+   ========================================================= */
+const SPEAKER_PRESETS = {
+  full: [
+    { id:'1x8',   label:'单 8"',        maxW: 150,  driver:'1×8"',
+      sens: 94, distFront:  4, distBack: 20 },
+    { id:'1x10',  label:'单 10"',       maxW: 250,  driver:'1×10"',
+      sens: 96, distFront:  6, distBack: 25 },
+    { id:'1x12',  label:'单 12"',       maxW: 400,  driver:'1×12"',
+      sens: 98, distFront: 10, distBack: 40 },
+    { id:'1x15',  label:'单 15"',       maxW: 500,  driver:'1×15"',
+      sens: 99, distFront: 15, distBack: 50 },
+    { id:'2x8',   label:'双 8"',        maxW: 300,  driver:'2×8"',
+      sens: 97, distFront: 10, distBack: 35 },
+    { id:'2x12',  label:'双 12"',       maxW: 800,  driver:'2×12"',
+      sens: 101, distFront: 18, distBack: 60 },
+    { id:'2x15',  label:'双 15"',       maxW: 1000, driver:'2×15"',
+      sens: 102, distFront: 22, distBack: 80 },
+    { id:'la4',   label:'线阵列 4 组',  maxW: 2000, driver:'LA×4',
+      sens: 106, distFront: 20, distBack: 80 },
+    { id:'la6',   label:'线阵列 6 组',  maxW: 3000, driver:'LA×6',
+      sens: 108, distFront: 22, distBack: 100 },
+    { id:'la8',   label:'线阵列 8 组',  maxW: 4000, driver:'LA×8',
+      sens: 109, distFront: 25, distBack: 120 },
+    { id:'custom',label:'自定义 …',      maxW: 1000, driver:'自定义',
+      custom:true },
+  ],
+  sub: [
+    { id:'1x15',  label:'单 15"',       maxW: 800,  driver:'1×15"',
+      sens: 96, distFront:  8, distBack: 30 },
+    { id:'1x18',  label:'单 18"',       maxW: 1200, driver:'1×18"',
+      sens: 98, distFront: 12, distBack: 45 },
+    { id:'1x21',  label:'单 21"',       maxW: 2000, driver:'1×21"',
+      sens: 99, distFront: 15, distBack: 50 },
+    { id:'2x18',  label:'双 18"',       maxW: 2400, driver:'2×18"',
+      sens: 101, distFront: 18, distBack: 65 },
+    { id:'2x21',  label:'双 21"',       maxW: 4000, driver:'2×21"',
+      sens: 102, distFront: 22, distBack: 80 },
+    { id:'la4',   label:'线阵列 4 组',  maxW: 4800, driver:'LA×4',
+      sens: 106, distFront: 20, distBack: 80 },
+    { id:'la6',   label:'线阵列 6 组',  maxW: 7200, driver:'LA×6',
+      sens: 108, distFront: 25, distBack: 100 },
+    { id:'la8',   label:'线阵列 8 组',  maxW: 9600, driver:'LA×8',
+      sens: 109, distFront: 30, distBack: 130 },
+    { id:'custom',label:'自定义 …',      maxW: 2400, driver:'自定义',
+      custom:true },
+  ],
+};
+
+const SCALE = [
+  { label:'SIG',  db:-40, color:'blue'   },
+  { label:'-12',  db:-12, color:'green'  },
+  { label:'-6',   db:-6,  color:'green'  },
+  { label:'-3',   db:-3,  color:'green'  },
+  { label:'0',    db: 0,  color:'yellow' },
+  { label:'+3',   db: 3,  color:'amber'  },
+  { label:'+6',   db: 6,  color:'orange' },
+  { label:'CLIP', db: 0,  color:'red', clip:true },
+];
+
+const ROW_DEFS = [
+  { band:'full', ch:0, name:'FULL', side:'L', sub:false },
+  { band:'full', ch:1, name:'FULL', side:'R', sub:false },
+  { band:'sub',  ch:0, name:'SUB',  side:'L', sub:true  },
+  { band:'sub',  ch:1, name:'SUB',  side:'R', sub:true  },
+];
+
+const gainState      = { full: [0.5, 0.5], sub: [0.5, 0.5] };
+const limitState     = { full: [100, 100], sub: [100, 100] };
+const smoothKnobGain = { full: [1, 1],     sub: [1, 1]      };
+const limiterGain    = { full: [1, 1],     sub: [1, 1]      };
+
+let sensValue  = 0.5;
+let sensOffset = 0;
+
+let refreshMode       = 'realtime';
+let lastDisplayUpdate = 0;
+
+let totalOutSmooth = 0;
+let totalConSmooth = 0;
+
+let lastLoadUpdate  = 0;
+let totalLoadSmooth = 0;
+
+/* =========================================================
+   4. 市电三相状态
+   ========================================================= */
+const mainsPhases = [
+  { name:'L1', volt: MAINS_NOMINAL, loadBias: 1.00 },
+  { name:'L2', volt: MAINS_NOMINAL, loadBias: 0.97 },
+  { name:'L3', volt: MAINS_NOMINAL, loadBias: 1.03 },
+];
+const mainsAmps = [0, 0, 0];
+
+function stepMainsVoltage(dt) {
+  const stepScale = Math.sqrt(dt / 16.7);
+  for (const p of mainsPhases) {
+    p.volt += (Math.random() - 0.5) * 0.22 * stepScale;
+    p.volt += (MAINS_NOMINAL - p.volt) * 0.0018 * stepScale;
+    if (p.volt < MAINS_MIN) p.volt = MAINS_MIN + Math.random() * 0.6;
+    if (p.volt > MAINS_MAX) p.volt = MAINS_MAX - Math.random() * 0.6;
+  }
+}
+
+/* =========================================================
+   5. 增益 / dB 转换
+   ========================================================= */
+function knobToDb(v) {
+  if (v <= 0.5) return -40 + (v / 0.5) * 40;
+  else          return ((v - 0.5) / 0.5) * 10;
+}
+function dbToKnob(dB) {
+  dB = Math.max(-40, Math.min(10, dB));
+  if (dB <= 0) return ((dB + 40) / 40) * 0.5;
+  else         return 0.5 + (dB / 10) * 0.5;
+}
+function knobToGain(v) { return Math.pow(10, knobToDb(v) / 20); }
+function fmtDb(dB) {
+  if (Math.abs(dB) < 0.05) dB = 0;
+  return (dB >= 0 ? '+' : '') + dB.toFixed(1);
+}
+
+/* =========================================================
+   6. 构建刻度 / 表头 / 功率卡片
+   ========================================================= */
+const scaleMarksEl = document.getElementById('scaleMarks');
+SCALE.forEach(s => {
+  const sp = document.createElement('span');
+  sp.textContent = s.label;
+  scaleMarksEl.append(sp);
+});
+
+const rowsEl     = document.getElementById('rows');
+const powerPanel = document.getElementById('powerPanel');
+const rows       = [];
+const powerCards = [];
+
+ROW_DEFS.forEach((def, i) => {
+  const rowEl = document.createElement('div');
+  rowEl.className = 'ch-row grid3';
+
+  const label = document.createElement('div');
+  label.className = 'ch-label' + (def.sub ? ' sub' : '');
+  label.innerHTML = `<span class="band">${def.name}</span><span class="side">${def.side}</span>`;
+
+  const ledsEl = document.createElement('div');
+  ledsEl.className = 'leds';
+  const leds = SCALE.map(s => {
+    const led = document.createElement('div');
+    led.className = 'led';
+    led.dataset.c = s.color;
+    ledsEl.append(led);
+    return { el: led, db: s.db, clip: !!s.clip, on: false };
+  });
+
+  const dbEl = document.createElement('div');
+  dbEl.className = 'ch-db';
+  dbEl.textContent = '−∞';
+
+  rowEl.append(label, ledsEl, dbEl);
+  rowsEl.append(rowEl);
+
+  if (i === 1) {
+    const sep = document.createElement('div');
+    sep.className = 'sep';
+    rowsEl.append(sep);
+  }
+
+  const row = {
+    def, leds, dbEl,
+    db: -100,
+    clipUntil: 0,
+    powerSmooth: 0,
+    preset: SPEAKER_PRESETS[def.band][3],
+    peakAccum: 0,
+  };
+  rows.push(row);
+
+  const card = document.createElement('div');
+  card.className = 'power-card';
+
+  const nameEl = document.createElement('div');
+  nameEl.className = 'pc-name' + (def.sub ? ' sub' : '');
+  nameEl.textContent = (def.sub ? '超低' : '全频') + ' ' + def.side;
+
+  const valueEl = document.createElement('div');
+  valueEl.className = 'pc-value';
+  valueEl.innerHTML = '0.0<small>W</small>';
+
+  const barEl = document.createElement('div');
+  barEl.className = 'pc-bar';
+  const fillEl = document.createElement('div');
+  fillEl.className = 'pc-fill';
+  barEl.append(fillEl);
+
+  const selectEl = document.createElement('select');
+  selectEl.className = 'pc-select';
+  SPEAKER_PRESETS[def.band].forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.custom ? p.label : `${p.label} · ${p.maxW}W`;
+    selectEl.append(opt);
+  });
+  selectEl.value = row.preset.id;
+
+  const customEl = document.createElement('input');
+  customEl.className = 'pc-custom';
+  customEl.type = 'number';
+  customEl.min = 1;
+  customEl.step = 1;
+  customEl.placeholder = '最大功率 W';
+  customEl.value = row.preset.maxW;
+
+  const splEl = document.createElement('div');
+  splEl.className = 'pc-spl';
+
+  const spl1mCell = document.createElement('div');
+  spl1mCell.className = 'spl-cell';
+  spl1mCell.innerHTML = '<span class="spl-label">1m</span><span class="spl-val">—</span>';
+
+  const splFrontCell = document.createElement('div');
+  splFrontCell.className = 'spl-cell';
+  splFrontCell.innerHTML = '<span class="spl-label">—</span><span class="spl-val">—</span>';
+
+  const splBackCell = document.createElement('div');
+  splBackCell.className = 'spl-cell';
+  splBackCell.innerHTML = '<span class="spl-label">—</span><span class="spl-val">—</span>';
+
+  splEl.append(spl1mCell, splFrontCell, splBackCell);
+
+  function refreshSplLabels() {
+    const p = row.preset;
+    if (p.custom) { splEl.classList.add('hidden'); return; }
+    splEl.classList.remove('hidden');
+    spl1mCell.querySelector('.spl-label').textContent = '1m';
+    splFrontCell.querySelector('.spl-label').textContent = `${p.distFront}m`;
+    splBackCell.querySelector('.spl-label').textContent = `${p.distBack}m`;
+  }
+  refreshSplLabels();
+
+  function syncCustomVisibility() {
+    customEl.classList.toggle('show', !!row.preset.custom);
+    refreshSplLabels();
+  }
+  syncCustomVisibility();
+
+  selectEl.addEventListener('change', () => {
+    const found = SPEAKER_PRESETS[def.band].find(p => p.id === selectEl.value);
+    if (found) {
+      if (found.custom) {
+        row.preset = { ...found, maxW: parseFloat(customEl.value) || found.maxW };
+      } else {
+        row.preset = found;
+      }
+      row.powerSmooth = 0;
+      syncCustomVisibility();
+      selectEl.blur();
+    }
+  });
+
+  customEl.addEventListener('input', () => {
+    const v = parseFloat(customEl.value);
+    if (isFinite(v) && v > 0) { row.preset.maxW = v; row.powerSmooth = 0; }
+  });
+
+  const footEl = document.createElement('div');
+  footEl.className = 'pc-foot';
+
+  const pctEl = document.createElement('span');
+  pctEl.className = 'pc-pct';
+  pctEl.textContent = '0.0%';
+
+  const limWrap = document.createElement('span');
+  limWrap.className = 'pc-lim';
+  limWrap.append(document.createTextNode('限'));
+
+  const limInput = document.createElement('input');
+  limInput.type = 'number';
+  limInput.min = 0;
+  limInput.max = MAX_LIMIT_PCT;
+  limInput.step = 1;
+  limInput.value = limitState[def.band][def.ch];
+
+  function syncLimWarn() {
+    const v = parseFloat(limInput.value);
+    limInput.classList.toggle('warn', isFinite(v) && v > 100);
+  }
+  syncLimWarn();
+
+  limInput.addEventListener('input', () => {
+    let v = parseFloat(limInput.value);
+    if (!isFinite(v)) return;
+    v = Math.max(0, Math.min(MAX_LIMIT_PCT, v));
+    limitState[def.band][def.ch] = v;
+    syncLimWarn();
+  });
+  limInput.addEventListener('blur', () => {
+    let v = parseFloat(limInput.value);
+    if (!isFinite(v)) v = 100;
+    v = Math.max(0, Math.min(MAX_LIMIT_PCT, v));
+    limitState[def.band][def.ch] = v;
+    limInput.value = v;
+    syncLimWarn();
+  });
+  limInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); limInput.blur(); }
+  });
+
+  limWrap.append(limInput);
+  limWrap.append(document.createTextNode('%'));
+  footEl.append(pctEl, limWrap);
+
+  card.append(nameEl, valueEl, barEl, selectEl, customEl, footEl, splEl);
+  powerPanel.append(card);
+
+  powerCards.push({
+    def, row,
+    valueEl, fillEl, pctEl, limInput,
+    splEl, spl1mCell, splFrontCell, splBackCell,
+    refreshSplLabels,
+  });
+});
+
+/* =========================================================
+   7. 旋钮组件
+   ========================================================= */
+function createKnob(container, opts) {
+  const { label, sublabel, initial = 0.5, accent = false, onChange } = opts;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'knob-item' + (accent ? ' sens' : '');
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.classList.add('knob-svg');
+
+  const outer = document.createElementNS(svgNS, 'circle');
+  outer.setAttribute('cx', 50); outer.setAttribute('cy', 50);
+  outer.setAttribute('r', 44);
+  outer.setAttribute('fill', 'url(#ringGrad)');
+  outer.setAttribute('stroke', '#0a0b0c');
+  outer.setAttribute('stroke-width', '1');
+  svg.append(outer);
+
+  for (let i = 0; i < 11; i++) {
+    const t = i / 10;
+    const angle = -135 + 270 * t;
+    const rad = (90 - angle) * Math.PI / 180;
+    const r1 = 36, r2 = 41.5;
+    const line = document.createElementNS(svgNS, 'line');
+    line.setAttribute('x1', 50 + r1 * Math.cos(rad));
+    line.setAttribute('y1', 50 - r1 * Math.sin(rad));
+    line.setAttribute('x2', 50 + r2 * Math.cos(rad));
+    line.setAttribute('y2', 50 - r2 * Math.sin(rad));
+    line.setAttribute('class', 'knob-tick' + (i === 0 || i === 5 || i === 10 ? ' major' : ''));
+    svg.append(line);
+  }
+
+  const rotor = document.createElementNS(svgNS, 'g');
+  const body = document.createElementNS(svgNS, 'circle');
+  body.setAttribute('cx', 50); body.setAttribute('cy', 50);
+  body.setAttribute('r', 29);
+  body.setAttribute('class', 'knob-body');
+  rotor.append(body);
+
+  const ind = document.createElementNS(svgNS, 'line');
+  ind.setAttribute('x1', 50); ind.setAttribute('y1', 24);
+  ind.setAttribute('x2', 50); ind.setAttribute('y2', 41);
+  ind.setAttribute('class', 'knob-indicator');
+  rotor.append(ind);
+  svg.append(rotor);
+
+  const cap = document.createElementNS(svgNS, 'circle');
+  cap.setAttribute('cx', 50); cap.setAttribute('cy', 50);
+  cap.setAttribute('r', 9);
+  cap.setAttribute('class', 'knob-cap');
+  svg.append(cap);
+
+  wrap.append(svg);
+
+  const labelEl = document.createElement('div');
+  labelEl.className = 'knob-label';
+  labelEl.innerHTML = `<span class="knob-name">${label}</span>` +
+    (sublabel ? `<span class="knob-sub">${sublabel}</span>` : '');
+  wrap.append(labelEl);
+
+  const valueInput = document.createElement('input');
+  valueInput.className = 'knob-input';
+  valueInput.type = 'text';
+  valueInput.inputMode = 'decimal';
+  valueInput.autocomplete = 'off';
+  valueInput.spellcheck = false;
+  wrap.append(valueInput);
+
+  container.append(wrap);
+
+  let value = initial;
+
+  function render() {
+    const angle = -135 + 270 * value;
+    rotor.setAttribute('transform', `rotate(${angle}, 50, 50)`);
+    if (document.activeElement !== valueInput) {
+      valueInput.value = fmtDb(knobToDb(value));
+    }
+  }
+  render();
+
+  function parseInput(s) {
+    if (typeof s !== 'string') return null;
+    s = s.trim().replace(/db/gi, '').trim();
+    if (!s) return null;
+    const v = parseFloat(s);
+    if (!isFinite(v)) return null;
+    return Math.max(-40, Math.min(10, v));
+  }
+
+  valueInput.addEventListener('blur', () => {
+    const dB = parseInput(valueInput.value);
+    if (dB === null) { render(); return; }
+    const newVal = dbToKnob(dB);
+    const changed = Math.abs(newVal - value) > 1e-6;
+    value = newVal;
+    render();
+    valueInput.value = fmtDb(knobToDb(value));
+    if (changed) onChange(value);
+  });
+
+  valueInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); valueInput.blur(); }
+    else if (e.key === 'Escape') { e.preventDefault(); render(); valueInput.blur(); }
+  });
+
+  let dragging = false;
+  let lastAngle = 0;
+
+  function getAngle(e) {
+    const r = svg.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    return Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI;
+  }
+
+  svg.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    svg.setPointerCapture(e.pointerId);
+    dragging = true;
+    lastAngle = getAngle(e);
+    svg.classList.add('dragging');
+  });
+
+  svg.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const a = getAngle(e);
+    let d = a - lastAngle;
+    if (d > 180) d -= 360;
+    if (d < -180) d += 360;
+    lastAngle = a;
+    value = Math.max(0, Math.min(1, value + d / 270));
+    render();
+    onChange(value);
+  });
+
+  function endDrag(e) {
+    if (!dragging) return;
+    dragging = false;
+    svg.classList.remove('dragging');
+    try { svg.releasePointerCapture(e.pointerId); } catch (_) {}
+  }
+  svg.addEventListener('pointerup', endDrag);
+  svg.addEventListener('pointercancel', endDrag);
+
+  svg.addEventListener('wheel', e => {
+    e.preventDefault();
+    const d = e.deltaY > 0 ? -1 : 1;
+    value = Math.max(0, Math.min(1, value + d * 0.025));
+    render();
+    onChange(value);
+  }, { passive: false });
+
+  svg.addEventListener('dblclick', e => {
+    e.preventDefault();
+    value = 0.5;
+    render();
+    onChange(value);
+  });
+}
+
+const knobsRow = document.getElementById('knobsRow');
+
+ROW_DEFS.forEach(def => {
+  const isFull = def.band === 'full';
+  createKnob(knobsRow, {
+    label: (isFull ? '全频' : '超低') + ' ' + def.side,
+    sublabel: def.band.toUpperCase() + ' ' + def.side,
+    initial: gainState[def.band][def.ch],
+    onChange: v => { gainState[def.band][def.ch] = v; },
+  });
+});
+
+const divider = document.createElement('div');
+divider.className = 'knob-divider';
+knobsRow.append(divider);
+
+createKnob(knobsRow, {
+  label: '灵敏度',
+  sublabel: 'METER SENS',
+  initial: 0.5,
+  accent: true,
+  onChange: v => {
+    sensValue  = v;
+    sensOffset = 12 - 24 * v;
+  },
+});
+
+/* =========================================================
+   8. 系统面板交互
+   ========================================================= */
+const refreshSelect = document.getElementById('refreshSelect');
+refreshSelect.addEventListener('change', () => {
+  if (REFRESH_MODES[refreshSelect.value]) {
+    refreshMode = refreshSelect.value;
+    lastDisplayUpdate = 0;
+    for (const row of rows) row.peakAccum = 0;
+  }
+  refreshSelect.blur();
+});
+
+const crossoverSelect = document.getElementById('crossoverSelect');
+const crossoverCustom = document.getElementById('crossoverCustom');
+crossoverCustom.value = crossoverFreq;
+
+crossoverSelect.addEventListener('change', () => {
+  if (crossoverSelect.value === 'custom') {
+    crossoverCustom.classList.add('show');
+    crossoverCustom.focus();
+    crossoverCustom.select();
+  } else {
+    crossoverCustom.classList.remove('show');
+    setCrossoverFrequency(parseFloat(crossoverSelect.value));
+  }
+  crossoverSelect.blur();
+});
+
+crossoverCustom.addEventListener('input', () => {
+  const v = parseFloat(crossoverCustom.value);
+  if (isFinite(v) && v >= 20 && v <= 1000) setCrossoverFrequency(v);
+});
+crossoverCustom.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); crossoverCustom.blur(); }
+});
+
+const ampClassSelect = document.getElementById('ampClassSelect');
+ampClassSelect.addEventListener('change', () => {
+  if (AMP_CLASSES[ampClassSelect.value]) ampClass = ampClassSelect.value;
+  ampClassSelect.blur();
+});
+
+/* =========================================================
+   9. 市电三相 DOM 构建
+   ========================================================= */
+const mainsCellsEl = document.getElementById('mainsCells');
+const mainsCells = [];
+
+for (let i = 0; i < 3; i++) {
+  const cell = document.createElement('div');
+  cell.className = 'mains-cell';
+
+  const phaseEl = document.createElement('div');
+  phaseEl.className = 'mc-phase';
+  phaseEl.textContent = mainsPhases[i].name;
+
+  const valuesEl = document.createElement('div');
+  valuesEl.className = 'mc-values';
+
+  const voltEl = document.createElement('span');
+  voltEl.className = 'mc-volt';
+  voltEl.innerHTML = '—<small>V</small>';
+
+  const ampEl = document.createElement('span');
+  ampEl.className = 'mc-amp';
+  ampEl.innerHTML = '—<small>A</small>';
+
+  valuesEl.append(voltEl, ampEl);
+  cell.append(phaseEl, valuesEl);
+  mainsCellsEl.append(cell);
+
+  mainsCells.push({ voltEl, ampEl });
+}
+
+/* =========================================================
+   10. 音频图
+   ========================================================= */
+const audio   = new Audio();
+audio.preload = 'auto';
+
+let ctx       = null;
+let analysers = null;
+let buffers   = null;
+let gainNodes = null;
+let crossoverFilters = [];
+
+function setCrossoverFrequency(freq) {
+  freq = Math.max(20, Math.min(1000, freq));
+  crossoverFreq = freq;
+  if (ctx && crossoverFilters.length > 0) {
+    const t = ctx.currentTime;
+    for (const filt of crossoverFilters) {
+      for (const f of filt.hp) f.frequency.setTargetAtTime(freq, t, 0.03);
+      for (const f of filt.lp) f.frequency.setTargetAtTime(freq, t, 0.03);
+    }
+  }
+}
+
+function ensureAudio() {
+  if (!ctx) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const src      = ctx.createMediaElementSource(audio);
+    const splitter = ctx.createChannelSplitter(2);
+    const merger   = ctx.createChannelMerger(2);
+
+    src.connect(splitter);
+
+    analysers = [];
+    buffers   = [];
+    gainNodes = [];
+    crossoverFilters = [];
+
+    for (let ch = 0; ch < 2; ch++) {
+      const hp1 = ctx.createBiquadFilter();
+      hp1.type = 'highpass'; hp1.frequency.value = crossoverFreq; hp1.Q.value = 0.707;
+      const hp2 = ctx.createBiquadFilter();
+      hp2.type = 'highpass'; hp2.frequency.value = crossoverFreq; hp2.Q.value = 0.707;
+
+      const aFull = ctx.createAnalyser();
+      aFull.fftSize = 2048; aFull.smoothingTimeConstant = 0;
+
+      const gFull = ctx.createGain();
+      gFull.gain.value = knobToGain(gainState.full[ch]);
+
+      splitter.connect(hp1, ch);
+      hp1.connect(hp2);
+      hp2.connect(aFull);
+      aFull.connect(gFull);
+      gFull.connect(merger, 0, ch);
+
+      const lp1 = ctx.createBiquadFilter();
+      lp1.type = 'lowpass'; lp1.frequency.value = crossoverFreq; lp1.Q.value = 0.707;
+      const lp2 = ctx.createBiquadFilter();
+      lp2.type = 'lowpass'; lp2.frequency.value = crossoverFreq; lp2.Q.value = 0.707;
+
+      const aSub = ctx.createAnalyser();
+      aSub.fftSize = 2048; aSub.smoothingTimeConstant = 0;
+
+      const gSub = ctx.createGain();
+      gSub.gain.value = knobToGain(gainState.sub[ch]);
+
+      splitter.connect(lp1, ch);
+      lp1.connect(lp2);
+      lp2.connect(aSub);
+      aSub.connect(gSub);
+      gSub.connect(merger, 0, ch);
+
+      analysers.push({ full: aFull, sub: aSub });
+      buffers.push({
+        full: new Float32Array(aFull.fftSize),
+        sub:  new Float32Array(aSub.fftSize),
+      });
+      gainNodes.push({ full: gFull, sub: gSub });
+      crossoverFilters.push({ hp: [hp1, hp2], lp: [lp1, lp2] });
+    }
+
+    merger.connect(ctx.destination);
+  }
+  if (ctx.state === 'suspended') ctx.resume();
+}
+
+/* =========================================================
+   11. 播放控制
+   ========================================================= */
+const fileInput = document.getElementById('fileInput');
+const playBtn   = document.getElementById('playBtn');
+const timeEl    = document.getElementById('timeEl');
+const fnameEl   = document.getElementById('fnameEl');
+
+let objectUrl = null;
+
+fileInput.addEventListener('change', () => {
+  const f = fileInput.files[0];
+  if (!f) return;
+  ensureAudio();
+  if (objectUrl) URL.revokeObjectURL(objectUrl);
+  objectUrl = URL.createObjectURL(f);
+  audio.src = objectUrl;
+  fnameEl.textContent = f.name;
+  playBtn.disabled = false;
+  audio.play().catch(() => {});
+});
+
+playBtn.addEventListener('click', () => {
+  ensureAudio();
+  if (audio.paused) audio.play().catch(() => {});
+  else              audio.pause();
+});
+
+audio.addEventListener('play',  () => playBtn.textContent = '暂停');
+audio.addEventListener('pause', () => playBtn.textContent = '播放');
+audio.addEventListener('ended', () => playBtn.textContent = '播放');
+
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space' && !playBtn.disabled && e.target === document.body) {
+    e.preventDefault();
+    playBtn.click();
+  }
+});
+
+/* =========================================================
+   12. 系统读数 DOM
+   ========================================================= */
+const totalOutVal   = document.getElementById('totalOutVal');
+const totalConVal   = document.getElementById('totalConVal');
+const effVal        = document.getElementById('effVal');
+const effFill       = document.getElementById('effFill');
+const totalLoadVal  = document.getElementById('totalLoadVal');
+const totalLoadFill = document.getElementById('totalLoadFill');
+
+function formatWatt(v) {
+  if (v < 0.05) return { text: '0.0', unit: 'W' };
+  if (v < 10)   return { text: v.toFixed(2), unit: 'W' };
+  if (v < 1000) return { text: v.toFixed(v < 100 ? 1 : 0), unit: 'W' };
+  return { text: (v / 1000).toFixed(2), unit: 'kW' };
+}
+
+/* =========================================================
+   13. 响度栏更新
+   ========================================================= */
+function calcSPL(powerW, sens, distance) {
+  if (powerW < 0.01 || !sens) return null;
+  return sens + 10 * Math.log10(powerW) - 20 * Math.log10(distance);
+}
+
+function updateSplCell(cell, powerW, sens, distance) {
+  const valEl = cell.querySelector('.spl-val');
+  const spl = calcSPL(powerW, sens, distance);
+  if (spl === null) {
+    if (valEl.dataset.v !== 'idle') {
+      valEl.dataset.v = 'idle';
+      valEl.innerHTML = '—';
+      cell.classList.remove('loud', 'danger');
+    }
+    return;
+  }
+
+  const text = spl.toFixed(0);
+  if (valEl.dataset.v !== text) {
+    valEl.dataset.v = text;
+    valEl.innerHTML = text + '<small>dB</small>';
+  }
+
+  if (spl >= 112)      cell.className = 'spl-cell danger';
+  else if (spl >= 105) cell.className = 'spl-cell loud';
+  else                 cell.className = 'spl-cell';
+}
+
+/* =========================================================
+   14. 市电三相更新
+   ========================================================= */
+function updateMainsDisplay(totalConW, dt) {
+  const perPhaseW = totalConW / 3;
+  const k = 1 - Math.exp(-dt / 150);
+
+  for (let i = 0; i < 3; i++) {
+    const p = mainsPhases[i];
+    const cell = mainsCells[i];
+
+    const targetAmp = (perPhaseW * p.loadBias) / (p.volt * MAINS_PF);
+    mainsAmps[i] += (targetAmp - mainsAmps[i]) * k;
+
+    const voltText = p.volt.toFixed(1);
+    if (cell.voltEl.dataset.v !== voltText) {
+      cell.voltEl.dataset.v = voltText;
+      cell.voltEl.innerHTML = voltText + '<small>V</small>';
+    }
+
+    let vCls = '';
+    if (p.volt < 224)      vCls = 'warn';
+    else if (p.volt > 250) vCls = 'hot';
+    cell.voltEl.className = 'mc-volt' + (vCls ? ' ' + vCls : '');
+
+    const a = mainsAmps[i];
+    let ampText;
+    if (a < 0.005)     ampText = '0.00';
+    else if (a < 1)    ampText = a.toFixed(3);
+    else if (a < 10)   ampText = a.toFixed(2);
+    else               ampText = a.toFixed(1);
+
+    if (cell.ampEl.dataset.v !== ampText) {
+      cell.ampEl.dataset.v = ampText;
+      cell.ampEl.innerHTML = ampText + '<small>A</small>';
+    }
+  }
+}
+
+/* =========================================================
+   15. 整体负载更新（独立刷新，不受刷新率选择器影响）
+   ========================================================= */
+function updateTotalLoad(now) {
+  if (now - lastLoadUpdate < LOAD_REFRESH_MS) return;
+
+  const loadDt = lastLoadUpdate === 0 ? 16 : Math.min(now - lastLoadUpdate, 200);
+  lastLoadUpdate = now;
+
+  const loads = rows.map(r => (r.powerSmooth / r.preset.maxW) * 100);
+  const maxLoad = Math.max(...loads);
+  const avgLoad = loads.reduce((a, b) => a + b, 0) / loads.length;
+  const rawLoad = maxLoad * 0.55 + avgLoad * 0.45;
+
+  const k = 1 - Math.exp(-loadDt / 180);
+  totalLoadSmooth += (rawLoad - totalLoadSmooth) * k;
+
+  const text = totalLoadSmooth.toFixed(1);
+  if (totalLoadVal.dataset.v !== text) {
+    totalLoadVal.dataset.v = text;
+    totalLoadVal.innerHTML = text + '<small>%</small>';
+  }
+
+  const over = totalLoadSmooth > 100;
+  let cls;
+  if (over)                          cls = 'clip';
+  else if (totalLoadSmooth > 85)     cls = 'hot';
+  else if (totalLoadSmooth > 70)     cls = 'warn';
+  else                               cls = '';
+  totalLoadVal.className = 'sys-value' + (cls ? ' ' + cls : '');
+
+  let barCls;
+  if (over)                      barCls = 'clip';
+  else if (totalLoadSmooth > 85) barCls = 'hot';
+  else if (totalLoadSmooth > 70) barCls = 'warn';
+  else                           barCls = '';
+  totalLoadFill.className = 'sys-fill' + (barCls ? ' ' + barCls : '');
+  totalLoadFill.style.width = Math.min(totalLoadSmooth, 100).toFixed(1) + '%';
+}
+
+/* =========================================================
+   16. 主循环
+   ========================================================= */
+let lastT = performance.now();
+
+function fmtTime(t) {
+  if (!isFinite(t) || t < 0) return '--:--';
+  const m = Math.floor(t / 60);
+  const s = Math.floor(t % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function readPeak(analyser, buf) {
+  analyser.getFloatTimeDomainData(buf);
+  let p = 0;
+  for (let i = 0; i < buf.length; i++) {
+    const v = buf[i] < 0 ? -buf[i] : buf[i];
+    if (v > p) p = v;
+  }
+  return p;
+}
+
+function frame(now) {
+  requestAnimationFrame(frame);
+
+  const dt = Math.min(now - lastT, 100);
+  lastT = now;
+
+  const running = ctx && ctx.state === 'running';
+  const intervalMs = REFRESH_MODES[refreshMode].intervalMs;
+  const doDisplay  = intervalMs === 0 || (now - lastDisplayUpdate >= intervalMs);
+
+  let displayDt = 0;
+  if (doDisplay) {
+    displayDt = lastDisplayUpdate === 0 ? 16 : Math.min(now - lastDisplayUpdate, 200);
+    lastDisplayUpdate = now;
+  }
+
+  stepMainsVoltage(dt);
+
+  for (const row of rows) {
+    const { band, ch } = row.def;
+
+    let rawPeak = 0;
+    if (running) rawPeak = readPeak(analysers[ch][band], buffers[ch][band]);
+
+    const targetKnob = knobToGain(gainState[band][ch]);
+    const knobK = 1 - Math.exp(-dt / 20);
+    smoothKnobGain[band][ch] += (targetKnob - smoothKnobGain[band][ch]) * knobK;
+    const knobGain = smoothKnobGain[band][ch];
+
+    const maxW       = row.preset.maxW;
+    const limitPct   = limitState[band][ch];
+    const limitPower = maxW * (limitPct / 100);
+
+    const demandPeak  = rawPeak * knobGain;
+    const demandPower = maxW * demandPeak * demandPeak;
+
+    let targetLim = 1;
+    if (demandPower > limitPower && rawPeak > 1e-9 && knobGain > 1e-9) {
+      const neededOutPeak   = Math.sqrt(limitPower / maxW);
+      const neededTotalGain = neededOutPeak / rawPeak;
+      targetLim = Math.max(0, Math.min(1, neededTotalGain / knobGain));
+    }
+
+    const attacking = targetLim < limiterGain[band][ch];
+    const tauMs = attacking ? 5 : 250;
+    const limK  = 1 - Math.exp(-dt / tauMs);
+    limiterGain[band][ch] += (targetLim - limiterGain[band][ch]) * limK;
+
+    const totalGain = knobGain * limiterGain[band][ch];
+    if (gainNodes[ch] && gainNodes[ch][band]) {
+      gainNodes[ch][band].gain.value = totalGain;
+    }
+
+    const rawOutPeak = rawPeak * totalGain;
+
+    if (rawOutPeak >= CLIP_LEVEL) row.clipUntil = now + CLIP_HOLD;
+
+    if (doDisplay) {
+      const displayPeak = Math.max(rawOutPeak, row.peakAccum);
+      row.peakAccum = 0;
+
+      const outPeak = Math.min(displayPeak, 1.0);
+      const dbfs    = 20 * Math.log10(outPeak + 1e-12);
+
+      const ref     = BASE_REF[band] + sensOffset;
+      const meterDb = dbfs - ref;
+
+      if (meterDb >= row.db) {
+        row.db = meterDb;
+      } else {
+        const k = 1 - Math.exp(-displayDt / RELEASE_MS);
+        row.db += (meterDb - row.db) * k;
+      }
+      if (row.db < -70) row.db = -70;
+
+      const clipOn = now < row.clipUntil;
+
+      for (const led of row.leds) {
+        const on = led.clip ? clipOn : (row.db >= led.db);
+        if (on !== led.on) {
+          led.on = on;
+          led.el.classList.toggle('on', on);
+        }
+      }
+
+      let txt;
+      if (row.db <= -59.95) txt = '−∞';
+      else txt = (row.db >= 0 ? '+' : '−') + Math.abs(row.db).toFixed(1);
+      if (row.dbEl.textContent !== txt) row.dbEl.textContent = txt;
+      row.dbEl.classList.toggle('hot',  row.db >= 0 && !clipOn);
+      row.dbEl.classList.toggle('clip', clipOn);
+
+      const pFactor  = Math.min(displayPeak * displayPeak, 1.44);
+      const powerRaw = maxW * pFactor;
+
+      row.powerSmooth += (powerRaw - row.powerSmooth) * (1 - Math.exp(-displayDt / 160));
+
+      const card = powerCards.find(c => c.def.band === band && c.def.ch === ch);
+
+      if (card) {
+        const watts = row.powerSmooth < 0.05 ? 0 : row.powerSmooth;
+        let display;
+        if (watts === 0)          display = '0.0';
+        else if (watts < 10)      display = watts.toFixed(2);
+        else if (watts < 100)     display = watts.toFixed(1);
+        else                      display = Math.round(watts).toString();
+
+        if (card.valueEl.dataset.v !== display) {
+          card.valueEl.dataset.v = display;
+          card.valueEl.innerHTML = display + '<small>W</small>';
+        }
+
+        const pct      = pFactor * 100;
+        const overLoad = pct > 100;
+
+        let cls;
+        if (overLoad)          cls = 'clip';
+        else if (pct > 75)     cls = 'hot';
+        else if (pct > 45)     cls = 'warn';
+        else                   cls = '';
+        card.valueEl.className = 'pc-value' + (cls ? ' ' + cls : '');
+
+        card.fillEl.className = 'pc-fill' + (cls ? ' ' + cls : '');
+        card.fillEl.style.width = Math.min(pct / 1.2, 100).toFixed(1) + '%';
+
+        const pctText = pct.toFixed(1) + '%';
+        if (card.pctEl.textContent !== pctText) card.pctEl.textContent = pctText;
+
+        let pctCls;
+        if (overLoad)         pctCls = 'clip';
+        else if (pct > 90)    pctCls = 'hot';
+        else if (pct > 75)    pctCls = 'warn';
+        else                  pctCls = '';
+        card.pctEl.className = 'pc-pct' + (pctCls ? ' ' + pctCls : '');
+
+        const limVal = parseFloat(card.limInput.value);
+        card.limInput.classList.toggle('warn', isFinite(limVal) && limVal > 100);
+
+        const preset = row.preset;
+        if (preset.custom || !preset.sens) {
+          card.splEl.classList.add('hidden');
+        } else {
+          card.splEl.classList.remove('hidden');
+          updateSplCell(card.spl1mCell,    row.powerSmooth, preset.sens, 1);
+          updateSplCell(card.splFrontCell, row.powerSmooth, preset.sens, preset.distFront);
+          updateSplCell(card.splBackCell,  row.powerSmooth, preset.sens, preset.distBack);
+        }
+      }
+    } else {
+      if (rawOutPeak > row.peakAccum) row.peakAccum = rawOutPeak;
+    }
+  }
+
+  /* ---------- 系统功耗面板 ---------- */
+  if (doDisplay) {
+    let rawTotalOut = 0;
+    let rawTotalCon = 0;
+    for (const r of rows) {
+      const o = r.powerSmooth;
+      rawTotalOut += o;
+      rawTotalCon += channelConsumedW(o, r.preset.maxW, ampClass);
+    }
+
+    const sysK = 1 - Math.exp(-displayDt / 200);
+    totalOutSmooth += (rawTotalOut - totalOutSmooth) * sysK;
+    totalConSmooth += (rawTotalCon - totalConSmooth) * sysK;
+
+    const oFmt = formatWatt(totalOutSmooth);
+    if (totalOutVal.dataset.v !== oFmt.text + oFmt.unit) {
+      totalOutVal.dataset.v = oFmt.text + oFmt.unit;
+      totalOutVal.innerHTML = oFmt.text + '<small>' + oFmt.unit + '</small>';
+    }
+
+    const cFmt = formatWatt(totalConSmooth);
+    if (totalConVal.dataset.v !== cFmt.text + cFmt.unit) {
+      totalConVal.dataset.v = cFmt.text + cFmt.unit;
+      totalConVal.innerHTML = cFmt.text + '<small>' + cFmt.unit + '</small>';
+    }
+
+    const effPct = totalOutSmooth < 0.5
+      ? 0
+      : Math.min((totalOutSmooth / totalConSmooth) * 100, 100);
+
+    const effText = effPct.toFixed(1);
+    if (effVal.dataset.v !== effText) {
+      effVal.dataset.v = effText;
+      effVal.innerHTML = effText + '<small>%</small>';
+    }
+
+    /* 文本颜色分级 */
+    let effCls = '';
+    if (effPct === 0)       effCls = 'idle';
+    else if (effPct < 50)   effCls = 'warn';
+    else if (effPct < 80)   effCls = 'hot';
+    else                    effCls = '';
+    effVal.className = 'sys-value' + (effCls ? ' ' + effCls : '');
+
+    /* ★ 修复：状态条类名与文本保持一致，避免颜色语义错位；
+       idle 映射为空类，保持原逻辑（宽度 0% 时自然不可见） */
+    const fillCls = effCls === 'idle' ? '' : effCls;
+    effFill.className = 'sys-fill' + (fillCls ? ' ' + fillCls : '');
+    effFill.style.width = effPct.toFixed(1) + '%';
+
+    updateMainsDisplay(totalConSmooth, displayDt);
+  }
+
+  /* ---------- 整体负载（独立刷新） ---------- */
+  updateTotalLoad(now);
+
+  if (isFinite(audio.duration) && audio.duration > 0) {
+    timeEl.textContent = `${fmtTime(audio.currentTime)} / ${fmtTime(audio.duration)}`;
+  } else if (audio.src) {
+    timeEl.textContent = `${fmtTime(audio.currentTime)} / --:--`;
+  }
+}
+
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

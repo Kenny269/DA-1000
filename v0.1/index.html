@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>POWER AMP · LEVEL METER</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;display:grid;place-items:center;
+    background:radial-gradient(circle at 50% 0%,#17191d 0%,#08090a 70%);
+    font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    color:#c9ced6;-webkit-font-smoothing:antialiased;
+  }
+
+  .amp{
+    width:min(760px,94vw);
+    padding:24px 26px 20px;
+    border-radius:18px;
+    background:linear-gradient(180deg,#2b3037 0%,#1a1d21 45%,#141619 100%);
+    border:1px solid #0a0b0c;
+    box-shadow:
+      0 40px 80px rgba(0,0,0,.75),
+      inset 0 1px 0 rgba(255,255,255,.09),
+      inset 0 -1px 0 rgba(0,0,0,.6);
+  }
+
+  .brand{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-bottom:18px;padding-bottom:12px;
+    border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .brand h1{
+    margin:0;font-size:13px;letter-spacing:.32em;font-weight:600;
+    color:#8d949e;text-transform:uppercase;
+  }
+  .brand .model{font-size:11px;letter-spacing:.18em;color:#5a616b}
+
+  /* ===== 电平表 ===== */
+  .meter{
+    display:flex;gap:12px;
+    padding:20px 18px 16px;
+    border-radius:12px;
+    background:linear-gradient(180deg,#0b0c0e,#101215);
+    border:1px solid #000;
+    box-shadow:inset 0 4px 14px rgba(0,0,0,.95),
+               inset 0 -1px 0 rgba(255,255,255,.04);
+  }
+  .cell{flex:1;display:flex;flex-direction:column;align-items:center;gap:9px}
+
+  .led{
+    width:100%;height:30px;border-radius:5px;
+    background:#16181b;
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.9),
+               inset 0 -1px 0 rgba(255,255,255,.04);
+    transition:background 35ms linear,box-shadow 35ms linear;
+  }
+  .led.on{
+    background:var(--c);
+    box-shadow:
+      0 0 10px var(--c),
+      0 0 26px var(--g),
+      inset 0 1px 2px rgba(255,255,255,.6);
+  }
+
+  .led[data-c="blue"]  {--c:#4da3ff;--g:rgba(77,163,255,.55)}
+  .led[data-c="green"] {--c:#38e07b;--g:rgba(56,224,123,.50)}
+  .led[data-c="yellow"]{--c:#f5d33d;--g:rgba(245,211,61,.50)}
+  .led[data-c="amber"] {--c:#ff9d2e;--g:rgba(255,157,46,.50)}
+  .led[data-c="orange"]{--c:#ff6b2b;--g:rgba(255,107,43,.55)}
+  .led[data-c="red"]   {--c:#ff3b30;--g:rgba(255,59,48,.60)}
+
+  .tag{
+    font-size:11px;letter-spacing:.06em;color:#666d78;
+    font-variant-numeric:tabular-nums;
+  }
+  .cell.hot .tag{color:#b9c0ca}
+
+  /* ===== 控制区 ===== */
+  .controls{display:flex;align-items:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;
+    height:38px;padding:0 18px;border-radius:8px;
+    border:1px solid #000;
+    background:linear-gradient(180deg,#3a4048,#24282d);
+    color:#d5dae1;font-size:12px;letter-spacing:.12em;
+    text-transform:uppercase;cursor:pointer;user-select:none;
+    box-shadow:0 2px 0 #000,inset 0 1px 0 rgba(255,255,255,.12);
+    transition:background .12s,transform .06s;
+  }
+  .btn:hover{background:linear-gradient(180deg,#454c55,#2b3036)}
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.35;cursor:default;transform:none}
+
+  .time{font-size:12px;color:#6b727d;font-variant-numeric:tabular-nums}
+
+  .readout{margin-left:auto;display:flex;align-items:baseline;gap:5px}
+  .db{
+    font-size:28px;font-weight:300;color:#7fe6a5;
+    text-shadow:0 0 16px rgba(56,224,123,.45);
+    font-variant-numeric:tabular-nums;min-width:88px;text-align:right;
+    transition:color .1s,text-shadow .1s;
+  }
+  .db.danger{color:#ff5b52;text-shadow:0 0 16px rgba(255,59,48,.6)}
+  .unit{font-size:11px;color:#5a616b;letter-spacing:.1em}
+</style>
+</head>
+<body>
+
+<div class="amp">
+  <div class="brand">
+    <h1>Power Amplifier</h1>
+    <span class="model">MODEL DA-1000 · LEVEL METER</span>
+  </div>
+
+  <div class="meter" id="meter"></div>
+
+  <div class="controls">
+    <label class="btn">
+      加载音频
+      <input type="file" id="file" accept="audio/*" hidden>
+    </label>
+    <button class="btn" id="playBtn" disabled>播放</button>
+    <span class="time" id="time">--:-- / --:--</span>
+    <div class="readout">
+      <span class="db" id="db">−∞</span><span class="unit">dB</span>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   配置
+   ========================================================= */
+// 表头 0 dB 对应的 dBFS 值（校准参考点）
+// 例：-6 表示"表头 0dB"= "-6 dBFS"，于是表头 +6 = 0 dBFS
+const REF_DBFS = -6;
+
+// LED 定义：db 是"表头刻度"，不是 dBFS
+const LED_DEFS = [
+  { label:'SIG', db:-40, color:'blue'   },
+  { label:'-12', db:-12, color:'green'  },
+  { label:'-6',  db:-6,  color:'green'  },
+  { label:'-3',  db:-3,  color:'green'  },
+  { label:'0',   db: 0,  color:'yellow' },
+  { label:'+3',  db: 3,  color:'amber'  },
+  { label:'+6',  db: 6,  color:'orange' },
+  { label:'CLIP',db: Infinity, color:'red', clip:true },
+];
+
+const RELEASE_MS  = 200;   // 回落时间常数（毫秒），越大越"慢悠悠"
+const CLIP_HOLD   = 1200;  // CLIP 保持点亮时间
+const CLIP_LEVEL  = 0.99;  // 原始采样绝对值超过它就认为削顶
+
+/* =========================================================
+   构建 LED DOM
+   ========================================================= */
+const meterEl = document.getElementById('meter');
+const leds = LED_DEFS.map(def => {
+  const cell = document.createElement('div');
+  cell.className = 'cell';
+
+  const led = document.createElement('div');
+  led.className = 'led';
+  led.dataset.c = def.color;
+
+  const tag = document.createElement('span');
+  tag.className = 'tag';
+  tag.textContent = def.label;
+
+  cell.append(led, tag);
+  meterEl.append(cell);
+
+  return { ...def, el: led, cell };
+});
+
+/* =========================================================
+   音频图
+   ========================================================= */
+const audio = new Audio();
+audio.preload = 'auto';
+
+let ctx = null, srcNode = null, analyser = null, buf = null;
+let objectUrl = null;
+
+const fileInput = document.getElementById('file');
+const playBtn   = document.getElementById('playBtn');
+const timeEl    = document.getElementById('time');
+const dbEl      = document.getElementById('db');
+
+function initAudio() {
+  if (ctx) {
+    if (ctx.state === 'suspended') ctx.resume();
+    return;
+  }
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+  // 同一个 <audio> 元素只能创建一次 MediaElementSource
+  srcNode  = ctx.createMediaElementSource(audio);
+  analyser = ctx.createAnalyser();
+  analyser.fftSize = 2048;
+
+  buf = new Float32Array(analyser.fftSize);
+
+  srcNode.connect(analyser);
+  analyser.connect(ctx.destination);   // 必须连到 destination 才有声音
+}
+
+/* =========================================================
+   交互
+   ========================================================= */
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  initAudio();
+
+  if (objectUrl) URL.revokeObjectURL(objectUrl);
+  objectUrl = URL.createObjectURL(file);
+
+  audio.src = objectUrl;
+  playBtn.disabled = false;
+  audio.play().catch(() => {});
+});
+
+playBtn.addEventListener('click', () => {
+  initAudio();
+  if (audio.paused) audio.play().catch(() => {});
+  else audio.pause();
+});
+
+audio.addEventListener('play',  () => playBtn.textContent = '暂停');
+audio.addEventListener('pause', () => playBtn.textContent = '播放');
+audio.addEventListener('ended', () => playBtn.textContent = '播放');
+
+// 空格键播放/暂停
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space' && !playBtn.disabled) {
+    e.preventDefault();
+    playBtn.click();
+  }
+});
+
+/* =========================================================
+   主循环
+   ========================================================= */
+let displayDb = -100;      // 当前表头读数（带弹道平滑）
+let clipUntil = 0;
+let lastT = performance.now();
+
+function fmt(t) {
+  if (!isFinite(t) || t < 0) return '--:--';
+  const m = Math.floor(t / 60);
+  const s = Math.floor(t % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function loop(now) {
+  requestAnimationFrame(loop);
+
+  const dt = Math.min(now - lastT, 100);  // 切标签页回来时防跳变
+  lastT = now;
+
+  /* ---------- 1. 采样 ---------- */
+  let peak = 0;
+  if (analyser) {
+    analyser.getFloatTimeDomainData(buf);
+    for (let i = 0; i < buf.length; i++) {
+      const v = buf[i] < 0 ? -buf[i] : buf[i];
+      if (v > peak) peak = v;
+    }
+  }
+
+  /* ---------- 2. 换算 dB ---------- */
+  const safePeak = peak > 1e-7 ? peak : 1e-7;      // 避免 log(0)
+  const peakDb   = 20 * Math.log10(safePeak);
+  const meterDb  = peakDb - REF_DBFS;              // 映射到"表头刻度"
+
+  /* ---------- 3. 表头弹道：瞬起 + 缓落 ---------- */
+  if (meterDb >= displayDb) {
+    displayDb = meterDb;                            // attack：瞬间跟上
+  } else {
+    const k = 1 - Math.exp(-dt / RELEASE_MS);       // release：指数回落
+    displayDb += (meterDb - displayDb) * k;
+  }
+  if (displayDb < -60) displayDb = -60;
+
+  /* ---------- 4. 削顶检测 ---------- */
+  if (peak >= CLIP_LEVEL) clipUntil = now + CLIP_HOLD;
+  const clipOn = now < clipUntil;
+
+  /* ---------- 5. 点亮 LED ---------- */
+  for (const l of leds) {
+    const on = l.clip ? clipOn : (displayDb >= l.db);
+    l.el.classList.toggle('on', on);
+    l.cell.classList.toggle('hot', on);
+  }
+
+  /* ---------- 6. 数码读数 / 时间 ---------- */
+  if (displayDb <= -59.9) {
+    dbEl.textContent = '−∞';
+  } else {
+    dbEl.textContent = (displayDb > 0 ? '+' : '') + displayDb.toFixed(1);
+  }
+  dbEl.classList.toggle('danger', clipOn);
+
+  if (audio.duration) {
+    timeEl.textContent = `${fmt(audio.currentTime)} / ${fmt(audio.duration)}`;
+  }
+}
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
