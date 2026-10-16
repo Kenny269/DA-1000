@@ -1,9 +1,9 @@
 # DA-1000 · 双通道功放电平表
 
-> 一个运行在浏览器里的虚拟功放面板：加载本地音频，实时解析双声道 / 全频 + 超低四路电平，驱动模拟 LED 表头、功率计、响度估算、系统功耗分析、市电三相监测、能量统计和峰值限幅器。
+> 一个运行在浏览器里的虚拟功放面板：加载本地音频，实时解析双声道 / 全频 + 超低四路电平，驱动 **LED 表头 / VU 指针表** 双模式、功率计、响度估算、系统功耗分析、市电三相监测、能量统计和峰值限幅器。
 
 ![status](https://img.shields.io/badge/status-stable-brightgreen)
-![version](https://img.shields.io/badge/version-v0.13.1__bugfix-blue)
+![version](https://img.shields.io/badge/version-v0.14.1-blue)
 ![license](https://img.shields.io/badge/license-MIT-lightgrey)
 ![deps](https://img.shields.io/badge/dependencies-none-success)
 
@@ -20,6 +20,8 @@
   - [音频图拓扑](#音频图拓扑)
   - [电子分频](#电子分频)
   - [电平表与弹道](#电平表与弹道)
+  - [LED 表头模式](#led-表头模式)
+  - [VU 指针表模式](#vu-指针表模式)
   - [刷新率控制与峰值累积](#刷新率控制与峰值累积)
   - [增益映射](#增益映射)
   - [功率限制器](#功率限制器)
@@ -32,6 +34,7 @@
   - [能量统计](#能量统计)
   - [主题系统](#主题系统)
   - [数值安全体系](#数值安全体系)
+- [项目结构](#项目结构)
 - [参数调优](#参数调优)
 - [扬声器预设](#扬声器预设)
 - [版本历史](#版本历史)
@@ -62,7 +65,7 @@ DA-1000 是一个**单文件、零依赖**的浏览器音频工具。它的工�
 1. 用户从本地加载一个音频文件；
 2. Web Audio API 把音频拆成 **左 / 右 × 全频 / 超低** 四条独立通道；
 3. 每条通道的信号经过滤波器、增益节点、限幅器后送往扬声器；
-4. 同时，四路信号的实时电平被送往 UI，驱动 LED 表头、瓦特计、响度估算、市电监测和能量统计。
+4. 同时，四路信号的实时电平被送往 UI，驱动 LED 表头 / VU 指针表、瓦特计、响度估算、市电监测和能量统计。
 
 整个系统在功能上模拟了一台 **双通道电子分频功放（Bi-Amp）**：
 
@@ -89,10 +92,19 @@ DA-1000 是一个**单文件、零依赖**的浏览器音频工具。它的工�
 - ✅ 峰值限幅器，可设定 0–120% 功率上限
 - ✅ 过载保护提示（>100% 红色闪烁警告）
 
+### 表头双模式
+
+- ✅ **LED 表头**：8 段（SIG / -12 / -6 / -3 / 0 / +3 / +6 / CLIP）
+  - 点亮时白色内核 + 多层彩色光晕
+  - off→on 时 240ms **亮度脉冲动画**（模拟真实 LED 的过曝感）
+- ✅ **VU 指针表**：扇形表盘 + 红色指针 + 弧形刻度（-40 ~ +6 dB）
+  - -12 处的红色 VU 参考标线
+  - 指针角度与 LED 弹道完全同步
+- ✅ **表头模式切换**：右上角下拉，偏好保存到 `localStorage`
+- ✅ 模拟弹道：瞬起 + 指数缓落，接近真实 VU / PPM 表
+
 ### 界面与交互
 
-- ✅ 8 段 LED 电平表（SIG / -12 / -6 / -3 / 0 / +3 / +6 / CLIP）
-- ✅ 模拟弹道：瞬起 + 指数缓落，接近真实 VU / PPM 表
 - ✅ 物理旋钮：拖拽、滚轮、双击复位、**键盘直接输入 dB 值**
 - ✅ 表头灵敏度调节（-12dB ~ +12dB 显示增益）
 - ✅ 数据刷新率选择器（非常低 / 低 / 中 / 高 / 实时）
@@ -141,12 +153,16 @@ DA-1000 是一个**单文件、零依赖**的浏览器音频工具。它的工�
 ┌──────────────────────────────────────────────────────────────────┐
 │ ☀  ● PWR   DA-1000   Stereo Bi-Amp · Active Crossover           │  ← 顶栏
 ├──────────────────────────────────────────────────────────────────┤
-│  LEVEL    SIG  -12  -6  -3   0   +3   +6  CLIP            dB     │
-│  FULL L  ●    ●    ●   ●    ●    ○    ○    ○              +1.2   │  ← 表头
+│  LEVEL · dB                        [表头: LED ▾]                 │  ← 表头
+│  ────────────────────────────────────────────────────────        │     模式
+│  SIG  -12  -6  -3   0   +3   +6  CLIP                            │     切换
+│  FULL L  ●    ●    ●   ●    ●    ○    ○    ○              +1.2   │
 │  FULL R  ●    ●    ●   ●    ○    ○    ○    ○              -0.4   │
-│  ─────────────────────────────────────────────────────────────   │
+│  ────────────────────────────────────────────────────────────    │
 │  SUB  L  ●    ●    ●   ●    ●    ●    ○    ○              +4.8   │
 │  SUB  R  ●    ●    ●   ○    ○    ○    ○    ○              -3.1   │
+│                                                                  │
+│  （或 VU 模式：4 个扇形表盘并排，红色指针随电平摆动）               │
 ├──────────────────────────────────────────────────────────────────┤
 │   (全频L)   (全频R)   (超低L)   (超低R)   │  (灵敏度)             │
 │      ◉         ◉         ◉         ◉      │     ◉                │  ← 旋钮
@@ -181,10 +197,30 @@ DA-1000 是一个**单文件、零依赖**的浏览器音频工具。它的工�
 
 ### 表头区（LEVEL）
 
+表头面板**右上角**有一个模式切换下拉：
+
+| 模式 | 说明 |
+|---|---|
+| **LED**（默认） | 8 段发光二极管表头，带亮度脉冲动画 |
+| **VU 指针表** | 4 个扇形表盘并排，红色指针 |
+
+**LED 模式：**
+
 - **SIG**：信号存在指示灯，超过 -40dB 表头刻度即点亮
 - **-12 / -6 / -3 / 0 / +3 / +6**：标准 PPM 刻度
 - **CLIP**：削顶指示灯，峰值 ≥ 0.985 时触发，保持 1.2 秒
 - **右侧 dB 读数**：带弹道的实时表头值，超过 0dB 变黄，削顶变红
+
+**VU 模式：**
+
+- 每个表盘包含弧形刻度（-40 / -30 / -20 / -12 / -6 / -3 / 0 / +3 / +6）
+- **-12 处的红色标线**是 VU 参考点（0 VU）
+- **0 ~ +6 dB 的红色警示弧**提示过载区
+- 红色指针 + 金属轴心，指针角度范围 -50° ~ +50°
+- 表盘底部显示通道名 + 实时 dB 读数
+- 宽屏 2×2 网格，窄屏 1 列
+
+两种模式共享同一份电平数据，弹道、灵敏度、刷新率完全同步。
 
 ### 旋钮区
 
@@ -263,7 +299,7 @@ DA-1000 是一个**单文件、零依赖**的浏览器音频工具。它的工�
 
 ### 音频图拓扑
 
-整个系统基于 **Web Audio API** 构建。以下是 v0.13.1 的完整信号流：
+整个系统基于 **Web Audio API** 构建。以下是 v0.14.1 的完整信号流：
 
 ```
                        ┌─────────────────────────────────────────────┐
@@ -350,6 +386,153 @@ if (meterDb >= row.db) {
 - **Attack**：瞬间响应，不错过任何瞬态峰值
 - **Release**：一阶指数衰减，时间常数 `RELEASE_MS = 220ms`
 - 使用 `Math.exp` 而非简单线性插值，保证回落速度与刷新率无关
+
+**两种表头共用同一份 `row.db`**：
+
+- LED 表头：`row.db >= led.db` 时点亮对应灯珠
+- VU 表头：把 `row.db` 通过线性映射转成指针角度
+
+### LED 表头模式
+
+LED 表头视觉上模拟真实的发光二极管，**关键在"点亮瞬间"**：
+
+**点亮状态（CSS）：**
+
+```css
+.led.on{
+  background:radial-gradient(ellipse 150% 130% at 50% 34%,
+    #ffffff 0%, var(--c) 38%, var(--cd) 100%);
+  box-shadow:
+    0 0 4px #ffffff,             /* 白色内核：这是"亮"的关键 */
+    0 0 10px var(--c),           /* 彩色第一层光晕 */
+    0 0 22px var(--g),           /* 彩色第二层光晕 */
+    0 0 44px var(--g),           /* 彩色第三层光晕（大范围扩散） */
+    inset 0 1px 2px rgba(255,255,255,.85),
+    inset 0 -1px 3px rgba(0,0,0,.35);
+}
+```
+
+三层 `box-shadow` 叠加出真实 LED 的"由内向外渐弱"发光效果。径向渐变的中心用**纯白**而不是半透明白，是因为真实 LED 灯芯在过曝时就是纯白的。
+
+**亮度脉冲动画（`ledPop`）：**
+
+```css
+@keyframes ledPop {
+  0%   {filter:brightness(2.4) saturate(1.6);}
+  55%  {filter:brightness(1.15) saturate(1.05);}
+  100% {filter:brightness(1) saturate(1);}
+}
+.led.pop{animation:ledPop 240ms ease-out;}
+```
+
+从灭到亮的一瞬间，LED 会经历 240ms 的过曝——`brightness(2.4)` 让灯珠短暂地"过亮"，然后快速回落到正常亮度。这是模拟**真实 LED 的物理响应特性**（PN 结在通电瞬间的电荷注入过程）。
+
+**关键：怎么让动画每次都能重播？**
+
+浏览器有个特性——同一元素上，如果类的增删发生在同一帧内，动画不会重播。标准解法是**强制触发回流（reflow）**：
+
+```js
+if (on) {
+  led.el.classList.remove('pop');
+  void led.el.offsetWidth;      // ← 读一下布局属性，强制浏览器"算一下"
+  led.el.classList.add('pop');  // ← 再添加，动画就会从头播放
+} else {
+  led.el.classList.remove('pop');
+}
+```
+
+`void led.el.offsetWidth` 这一行看起来毫无意义（读一个属性却不使用），但它会强制浏览器**清空样式缓存、重新计算布局**。这之后再加 `pop` 类，浏览器就认为这是一个"新"的动画，会从头播放。
+
+**玻璃反光：**
+
+`.led::after` 用一层从顶部 52% 高度的白色渐变模拟 LED 表壳的塑料反光：
+
+- 熄灭时：`rgba(255,255,255,.15) → transparent`
+- 点亮时：`rgba(255,255,255,.35) → transparent`
+
+**为什么这些细节很重要：**
+
+如果只是简单地切换 `background-color`，LED 看起来会像"染色的方块"而不是"发光的灯"。亮度脉冲 + 三层光晕 + 玻璃反光，三者叠加才能让它看起来像真的在发光。
+
+### VU 指针表模式
+
+VU 表头用 SVG 绘制，结构如下：
+
+```
+      表盘（扇形）
+      ┌─────────────┐
+      │   刻度弧     │  ← -40 ~ +6 dB
+      │   ╱  ╱  ╱   │
+      │  ╱  ╱  ╱    │  ← 指针
+      │ ╱  ╱  ╱     │
+      │●──────────  │  ← 轴心 + 中心标签
+      └─────────────┘
+      通道名 + dB 读数
+```
+
+**坐标系统：**
+
+- `viewBox="0 0 200 130"`，通过 CSS `width:100%` 自适应
+- 表盘圆心 `(100, 112)`，扇形半径 `72`
+- 指针从圆心向上延伸，长度 `74`
+
+**角度映射：**
+
+```js
+function dbToVUAngle(db) {
+  const clamped = Math.max(-40, Math.min(6, db));
+  const norm = (clamped - (-40)) / (6 - (-40));
+  return -50 + norm * 100;   // -50° ~ +50°
+}
+```
+
+- `-40 dB` → `-50°`（指向左下）
+- `0 dB` → `+8.7°`（几乎垂直）
+- `+6 dB` → `+50°`（指向右下）
+
+**刻度线（tick）：**
+
+9 个刻度点：-40 / -30 / -20 / -12 / -6 / -3 / 0 / +3 / +6。其中 -12 / -6 / 0 / +6 是**大刻度**（更长、更粗）。
+
+**VU 参考标线：**
+
+-12 处有一条**红色横线**（不是普通的黑色刻度），这是经典 VU 表的"0 VU"参考点。在专业音响领域，VU 表的 0 VU 通常对应 -18 dBFS 或 -20 dBFS 的录制电平。
+
+**红色警示弧：**
+
+0 dB 到 +6 dB 之间有一段红色弧线（`stroke: var(--vu-arc-red)`），视觉上提示这是过载区。
+
+**指针：**
+
+- 主体：`stroke: var(--vu-needle)`，红色，`stroke-width: 1.8`
+- 阴影：偏移 `(cx+1, cy+1)`，`opacity: .5`，模拟指针在表盘上的投影
+
+指针用 `transform: rotate(angle, cx, cy)` 旋转。**每次旋转都用 `setAttribute` 直接设置**，不做 CSS 过渡——因为我们的弹道本身已经是平滑的，再叠加 CSS 过渡会导致指针滞后。
+
+**轴心：**
+
+- 外圆 `r=7`，填充径向渐变（浅色 → 深色）
+- 内圆 `r=2`，纯深色，模拟轴心的中心螺丝
+
+**表盘颜色跟随主题：**
+
+```css
+:root{
+  --vu-face-1:#e8e4d6;      /* 表盘米白 */
+  --vu-face-2:#d8d2bc;
+  --vu-needle:#c82020;      /* 指针红 */
+  --vu-arc-red:#c82020;
+}
+```
+
+米白色表盘 + 红色指针是经典 VU 表的配色，跟 LED 表头的深色科技感形成对比，提供了"另一个时代"的视觉选择。
+
+**为什么用 SVG 而不是 Canvas：**
+
+- SVG 是**声明式**的：每个元素都是 DOM 节点，可以单独用 CSS 变量改色
+- 主题切换时，`--vu-face-1` 等变量变化会自动应用到所有表盘，不需要重绘
+- 缩放时**矢量无损**，无论表盘多大都很清晰
+- Canvas 需要手写 `requestAnimationFrame` 重绘逻辑，与整个系统的"帧驱动"架构冲突
 
 ### 刷新率控制与峰值累积
 
@@ -816,26 +999,40 @@ v0.12 引入了浅色 / 深色主题切换。所有颜色都定义为 **CSS 自�
 :root{
   --page-1:#1b1f24;
   --tx-1:#c9ced6;
+  --vu-face-1:#e8e4d6;
+  --vu-needle:#c82020;
   /* ... 深色模式的所有变量 */
 }
 
 body.light{
   --page-1:#eef1f5;
   --tx-1:#2a3038;
+  --vu-face-1:#ffffff;
+  --vu-needle:#d02020;
   /* ... 浅色模式覆盖 */
 }
 ```
 
 切换时只需在 `<body>` 上添加 / 移除 `light` 类，所有颜色自然过渡（用 `transition: background .35s ease` 等实现）。
 
+**三个独立的主题维度：**
+
+页面元素上有三个正交的类控制：
+
+| 类 | 作用 | localStorage key |
+|---|---|---|
+| `light` | 浅色 / 深色 | `da1000-theme` |
+| `meter-vu` | 表头模式（VU 指针表） | `da1000-meter-mode` |
+| `meter-led` | 表头模式（LED） | 同上 |
+
+三个维度互不影响：你可以同时是"浅色主题 + VU 表头"，或者"深色主题 + LED 表头"。
+
 **切换逻辑：**
 
 ```js
 themeBtn.addEventListener('click', () => {
   const isLight = document.body.classList.toggle('light');
-  try{
-    localStorage.setItem('da1000-theme', isLight ? 'light' : 'dark');
-  }catch(e){}
+  try{ localStorage.setItem('da1000-theme', isLight ? 'light' : 'dark'); }catch(e){}
 });
 ```
 
@@ -901,33 +1098,24 @@ dt = NaN
 **第一层：5 个数值安全辅助函数**
 
 ```js
-/* 时间差：非有限数或负数返回 0，超大值钳到 max */
 function safeDt(v, max) {
   if (typeof v !== 'number' || !isFinite(v) || v < 0) return 0;
   return v > max ? max : v;
 }
-
-/* 指数平滑系数：任何非法输入返回 0（=跳过本次更新） */
 function safeK(dt, tau) {
   if (typeof dt !== 'number' || !isFinite(dt) || dt <= 0) return 0;
   if (typeof tau !== 'number' || !isFinite(tau) || tau <= 0) return 0;
   const k = 1 - Math.exp(-dt / tau);
   return isFinite(k) ? (k < 0 ? 0 : (k > 1 ? 1 : k)) : 0;
 }
-
-/* 通用数值守卫：非有限数返回 fallback */
 function safeNum(v, fallback) {
   return (typeof v === 'number' && isFinite(v)) ? v : fallback;
 }
-
-/* 电压守卫：异常值拉回标称值 */
 function safeVolt(v) {
   if (typeof v !== 'number' || !isFinite(v)) return MAINS_NOMINAL;
   if (v < MAINS_MIN - 20 || v > MAINS_MAX + 20) return MAINS_NOMINAL;
   return v;
 }
-
-/* 时间守卫：非有限时间戳返回 fallback */
 function safeTime(v, fallback) {
   return (typeof v === 'number' && isFinite(v)) ? v : fallback;
 }
@@ -975,7 +1163,6 @@ function frame(now) {
 即使在所有计算都经过安全函数之后，DOM 输出前仍然做最后一次校验：
 
 ```js
-/* updateMainsDisplay 内的电压输出 */
 let voltText;
 if (isFinite(p.volt)) {
   voltText = p.volt.toFixed(1);
@@ -1008,6 +1195,59 @@ cell.voltEl.innerHTML = voltText + '<small>V</small>';
 
 ---
 
+## 项目结构
+
+仓库采用**版本文件夹**结构，每个版本是一个自包含的文件夹：
+
+```
+DA-1000/
+├── .gitignore
+├── LICENSE
+├── README.md                 ← 项目文档（本文件，描述最新版本）
+├── v0.01/
+│   └── index.html
+├── v0.02/
+│   └── index.html
+├── ...
+├── v0.13/
+│   └── index.html
+├── v0.13.01_bugfix/
+│   └── index.html
+├── v0.14/
+│   └── index.html
+└── v0.14.1/                  ← 当前版本
+    └── index.html
+```
+
+**为什么这样组织：**
+
+- 每个版本**自包含**：下载单个文件夹即可运行，不需要跨目录找文件
+- **历史可追溯**：想对比 v0.7 和 v0.13 的差异，直接打开两个文件夹
+- **易于扩展**：未来如果某个版本增加了配置文件、预设文件、音频样本，可以直接放在对应文件夹里，不影响其他版本
+- **避免单文件杂乱**：不再是一堆 `index_v0.7_fixed_final.html` 堆在根目录
+
+**版本号命名规则：**
+
+- **零填充**：`v0.01` 而不是 `v0.1`，保证 GitHub 上的字典序与版本序一致
+- **三段式**：`v主版本.次版本.修订号`，与语义化版本（SemVer）兼容
+- **`_bugfix` 后缀**：标记只做了 bug 修复、没有新功能的版本
+
+**未来的扩展方式：**
+
+假设 v0.15 增加了外置的扬声器预设文件，结构会变成：
+
+```
+v0.15/
+├── index.html
+├── presets/
+│   └── speakers.json
+└── README.md          （该版本特有的说明，可选）
+```
+
+每个版本仍保持自包含。
+
+---
+
 ## 参数调优
 
 所有可调参数集中在 `<script>` 开头的配置区：
@@ -1026,6 +1266,10 @@ cell.voltEl.innerHTML = voltText + '<small>V</small>';
 | `ENERGY_SAMPLE_MS` | `250` | 能量统计采样间隔（ms） |
 | `ENERGY_HISTORY` | `2400` | 能量统计环形缓冲区长度（= 10 分钟） |
 | `ENERGY_DISPLAY_MS` | `400` | 能量面板 UI 刷新间隔（ms） |
+| `VU_MIN_DB` | `-40` | VU 表头刻度下限（dB） |
+| `VU_MAX_DB` | `6` | VU 表头刻度上限（dB） |
+| `VU_SWEEP` | `100` | VU 指针总扫过角度（度） |
+| `VU_START` | `-50` | VU 指针起始角度（度） |
 
 **刷新率预设**在 `REFRESH_MODES` 中：
 
@@ -1066,6 +1310,21 @@ const rawLoad = maxLoad * 0.55 + avgLoad * 0.45;
 - **整体负载刷新更快**：`LOAD_REFRESH_MS` 调到 `50`
 - **能量统计刷新更快**：`ENERGY_DISPLAY_MS` 调到 `200`
 - **能量统计支持更长窗口**：`ENERGY_HISTORY` 调到 `7200`（30 分钟），同时更新 `avgRecent` 调用处的参数
+- **VU 表头覆盖更宽范围**：`VU_MIN_DB` 调到 `-60`，同时调整 `BASE_REF` 和灵敏度
+
+**LED 亮度脉冲**的可调参数在 CSS 里：
+
+```css
+@keyframes ledPop {
+  0%   {filter:brightness(2.4) saturate(1.6);}   /* ← 峰值亮度 */
+  55%  {filter:brightness(1.15) saturate(1.05);}
+  100% {filter:brightness(1) saturate(1);}
+}
+.led.pop{animation:ledPop 240ms ease-out;}        /* ← 总时长 */
+```
+
+- **峰值亮度太低**：`2.4` 调到 `3.5`（更夸张）
+- **脉冲太长/太短**：`240ms` 调到 `150ms`（更"啪"）或 `400ms`（更"喘"）
 
 ---
 
@@ -1128,8 +1387,10 @@ const rawLoad = maxLoad * 0.55 + avgLoad * 0.45;
 | **V0.11.1** | 新增整体负载指标；修复效率状态条颜色与文本不一致的 bug |
 | **V0.12** | **图标系统**（内联 SVG，自动跟随主题）；**能量统计面板**（累计电能 kWh + 5 窗口平均功率 + 重置 + 运行时长）；平均功率改为**下拉选择**；**浅色 / 深色主题切换**（localStorage 记忆）；新增**"非常低"刷新率**（250ms） |
 | **V0.12.1** | 修复 Windows 上电压变 `NaN` 的 bug（rAF 时间戳回退导致 `dt < 0` → `Math.sqrt(负)` → NaN）；使用 `Math.max(0, ...)` 钳制 —— ⚠️ *未彻底修复* |
-| **V0.13** | **数值安全体系**：引入 `safeDt` / `safeK` / `safeNum` / `safeVolt` / `safeTime` 辅助函数；`frame()` 加入三道防线；全链路覆盖时间、增益、功率、电压计算；DOM 输出前最后校验 |
-| **V0.13.1_bugfix** | **当前版本**：修复 V0.12.1 遗留的问题 —— `Math.max(0, NaN)` 返回 NaN 而非 0，导致 `dt` 变成 NaN 后永久污染累积器。用 `safeDt` 彻底替换所有直接钳制；累加后强制 `isFinite` 校验；采样循环加上限防止挂起后死循环 |
+| **V0.13** | **数值安全体系**：引入 `safeDt` / `safeK` / `safeNum` / `safeVolt` 辅助函数；`frame()` 加入三道防线；全链路覆盖时间、增益、功率、电压计算；DOM 输出前最后校验 |
+| **V0.13.1_bugfix** | 彻底修复 `Math.max(0, NaN)` 返回 NaN 的陷阱；用 `safeDt` 替换所有直接钳制；累加后强制 `isFinite` 校验；采样循环加上限防止挂起后死循环 |
+| **V0.14** | **VU 指针表模式**：表头面板右上角新增模式切换下拉（LED / VU）；VU 模式用 SVG 绘制扇形表盘、弧形刻度、红色 VU 参考线、0~+6dB 警示弧；指针角度与 LED 弹道同步；偏好保存到 `localStorage` |
+| **V0.14.1** | **当前版本**：修复 V0.14 中 LED 表头点亮瞬间视觉冲击力减弱的问题 —— 恢复并增强白色内核光晕（4 层 box-shadow）；新增 `ledPop` 240ms 亮度脉冲动画（点亮瞬间过曝 `brightness(2.4)`）；玻璃反光从 8.5% 提到 15% |
 
 ### V0.4 的 bug 说明
 
@@ -1168,70 +1429,7 @@ Windows 上（尤其在 Chrome 中）市电电压显示变成 `NaN`。当时的�
 
 ### V0.13.1_bugfix 的彻底修复
 
-用 **5 个数值安全辅助函数** + **`frame()` 三道防线** + **全链路覆盖** 重构了数值处理：
-
-**5 个安全辅助函数：**
-
-```js
-function safeDt(v, max) {
-  if (typeof v !== 'number' || !isFinite(v) || v < 0) return 0;
-  return v > max ? max : v;
-}
-function safeK(dt, tau) {
-  if (typeof dt !== 'number' || !isFinite(dt) || dt <= 0) return 0;
-  if (typeof tau !== 'number' || !isFinite(tau) || tau <= 0) return 0;
-  const k = 1 - Math.exp(-dt / tau);
-  return isFinite(k) ? (k < 0 ? 0 : (k > 1 ? 1 : k)) : 0;
-}
-function safeNum(v, fallback) {
-  return (typeof v === 'number' && isFinite(v)) ? v : fallback;
-}
-function safeVolt(v) {
-  if (typeof v !== 'number' || !isFinite(v)) return MAINS_NOMINAL;
-  if (v < MAINS_MIN - 20 || v > MAINS_MAX + 20) return MAINS_NOMINAL;
-  return v;
-}
-function safeTime(v, fallback) {
-  return (typeof v === 'number' && isFinite(v)) ? v : fallback;
-}
-```
-
-**`frame()` 三道防线：**
-
-```js
-function frame(now) {
-  requestAnimationFrame(frame);
-
-  /* 防线 1：now 本身不合法 → 跳过整帧 */
-  if (typeof now !== 'number' || !isFinite(now)) return;
-
-  /* 防线 2：lastT 损坏 → 重置为当前时间 */
-  if (lastT === null || !isFinite(lastT)) {
-    lastT = now;
-    return;
-  }
-
-  /* 防线 3：dt 用 safeDt 处理 */
-  const dt = safeDt(now - lastT, 100);
-  lastT = now;
-  // ...
-}
-```
-
-**全链路覆盖：**
-
-- 所有 `1 - Math.exp(-dt/tau)` 都改成 `safeK(dt, tau)`
-- 所有 `p.volt += ...` 之后都紧跟 `p.volt = safeVolt(p.volt)`
-- 所有累积器（`smoothKnobGain` / `limiterGain` / `row.powerSmooth` / `totalOutSmooth` / `totalConSmooth` / `totalLoadSmooth` / `totalEnergyKWh` / `totalSum`）在每次更新后强制 `isFinite` 校验
-- DOM 输出前最后校验一次，绝不写 "NaN"
-- 能量统计采样循环加上限（100 次），防止标签页挂起后长时间阻塞
-
-**效果：**
-
-- **任何 NaN 源头都被堵死** —— 从 `now` 到 DOM 的每一层都有守卫
-- **即使出现意外 NaN 也能自愈** —— `safeVolt` 恢复标称值，`frame()` 防线 2 重置 `lastT`
-- **不会永久卡死** —— 丢一帧比卡死好得多
-- **跨平台表现一致** —— Windows / macOS / Linux 都稳定
+用 **5 个数值安全辅助函数** + **`frame()` 三道防线** + **全链路覆盖** 重构了数值处理。具体修复内容见上文"数值安全体系"章节。
 
 **教训：**
 
@@ -1239,6 +1437,41 @@ function frame(now) {
 2. `NaN` 与任何数的比较都返回 `false`，边界检查会全部失效
 3. 一旦累积器被污染成 `NaN`，如果没有显式重置逻辑，它会**永久保持**
 4. 跨平台代码必须显式 `isFinite` 检查，不能依赖数学函数的直觉
+
+### V0.14.1 的 LED 亮度修复
+
+v0.14 添加 VU 表头时，顺手把 LED 的 CSS 改了——但改错了方向，让点亮效果变"平"了：
+
+- 径向渐变中心从纯白 `#fff` 变成半透明白 `rgba(255,255,255,.94)`，发光感减弱
+- `box-shadow` 缺少白色内核层，看起来像"染色"而不是"发光"
+- 没有亮度突变，看不出灯珠的物理响应特性
+
+修复：
+
+1. **恢复并增强光晕** —— `box-shadow` 从 2 层彩色变成 **3 层彩色 + 1 层白色内核**：
+   ```css
+   box-shadow:
+     0 0 4px #ffffff,       /* 新增：白色内核 */
+     0 0 10px var(--c),
+     0 0 22px var(--g),
+     0 0 44px var(--g);      /* 新增：第 4 层光晕，扩大扩散范围 */
+   ```
+2. **新增 `ledPop` 亮度脉冲动画** —— 点亮瞬间 `brightness(2.4)` 过曝，240ms 内回落
+3. **玻璃反光从 8.5% 提到 15%**，点亮时从 35% 提到 45%
+
+**关键技术细节：** 让同一元素上的 CSS 动画**每次都能重播**。
+
+浏览器有个特性——如果类的增删发生在同一帧内，动画不会重播。标准解法是**强制触发回流**：
+
+```js
+if (on) {
+  led.el.classList.remove('pop');
+  void led.el.offsetWidth;      // ← 读一下布局属性，强制浏览器重新计算
+  led.el.classList.add('pop');  // ← 再添加，动画从头播放
+}
+```
+
+`void led.el.offsetWidth` 看起来毫无意义，但它强制浏览器清空样式缓存，之后再加类就被视为"新动画"。
 
 ---
 
@@ -1251,6 +1484,7 @@ function frame(now) {
 - **市电模型是模拟**：电压随机游走和电流反算都是为了视觉真实感，不反映真实电网行为
 - **整体负载是启发式指标**：55/45 的加权比例没有严格的工程依据，是经验上比较能反映"系统整体紧张程度"的折中
 - **能量统计是估算**：基于模拟的市电消耗功率积分，不反映真实电表读数
+- **VU 表头不是真 VU**：经典 VU 表有特定的积分时间常数（300ms 达到 99% 稳态），本项目用的是 PPM 峰值检测 + 可调弹道，视觉上像 VU 但技术上不是严格意义上的 VU
 - **不支持实时输入**：目前只能加载本地文件，不支持麦克风 / 线路输入（可通过扩展 `getUserMedia` 实现）
 - **移动端触控**：旋钮使用 Pointer Events，支持触控，但小屏幕上旋钮位置较挤
 - **不支持音频导出**：这是一个监看工具，不提供离线渲染 / 导出功能
@@ -1271,11 +1505,17 @@ function frame(now) {
 
 - Web Audio API（`AudioContext`、`AnalyserNode`、`BiquadFilterNode`、`GainNode`、`ChannelSplitter`、`ChannelMerger`）
 - Pointer Events
-- CSS 自定义属性、Grid、Gradients
-- `localStorage`（用于主题偏好记忆，可选，失败时静默忽略）
+- CSS 自定义属性、Grid、Gradients、SVG
+- `localStorage`（用于主题和表头模式偏好记忆，可选，失败时静默忽略）
 - `URL.createObjectURL`
 
 所有 API 都是现代浏览器的标准特性，无需 polyfill。
+
+**已知在 Windows Chrome 上需要额外注意的问题**（V0.13.1 起已彻底解决）：
+
+- `requestAnimationFrame` 时间戳可能回退 —— 已通过数值安全体系处理
+- 系统时钟被 NTP 微调时可能产生异常时间差 —— 已通过 `safeDt` 处理
+- 标签页挂起后恢复时产生大量积压 —— 已通过采样循环上限处理
 
 ---
 
@@ -1305,4 +1545,6 @@ SOFTWARE.
 
 ---
 
-*README 版本：对应 DA-1000 v0.13.1_bugfix*
+*README 版本：对应 DA-1000 v0.14.1*
+
+**最后更新：** 2026-10-16
